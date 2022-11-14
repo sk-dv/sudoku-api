@@ -3,7 +3,6 @@ import copy
 
 
 class SudokuBoard:
-
     def __init__(self, grid=None):
         self._grid = grid if grid else [[0] * 9 for _ in range(9)]
 
@@ -35,13 +34,23 @@ class SudokuBoard:
         column_occupied_numbers = {self._grid[i][column_num] for i in range(9)}
         sub__grid_low_row = row_num - row_num % 3
         sub__grid_low_column = column_num - column_num % 3
-        sub__grid_occupied_numbers = {self._grid[i][j] for i in range(sub__grid_low_row, sub__grid_low_row + 3)
-                                     for j in range(sub__grid_low_column, sub__grid_low_column + 3)}
-        occupied_numbers = row_occupied_numbers | column_occupied_numbers | sub__grid_occupied_numbers
+        sub__grid_occupied_numbers = {
+            self._grid[i][j]
+            for i in range(sub__grid_low_row, sub__grid_low_row + 3)
+            for j in range(sub__grid_low_column, sub__grid_low_column + 3)
+        }
+        occupied_numbers = (
+            row_occupied_numbers | column_occupied_numbers | sub__grid_occupied_numbers
+        )
         return {1, 2, 3, 4, 5, 6, 7, 8, 9} - occupied_numbers
 
     def get_empty_cells(self):
-        return [(row_num, column_num) for row_num in range(9) for column_num in range(9) if not self._grid[row_num][column_num]]
+        return [
+            (row_num, column_num)
+            for row_num in range(9)
+            for column_num in range(9)
+            if not self._grid[row_num][column_num]
+        ]
 
     def assign(self, row_num, column_num, number):
         assert number in self.get_available_numbers(row_num, column_num)
@@ -66,7 +75,11 @@ class SudokuBoard:
     def _check_sub_grids(self):
         for irow in range(0, 9, 3):
             for icolumn in range(0, 9, 3):
-                sub_grid = [self._grid[i][j] for i in range(irow, irow + 3) for j in range(icolumn, icolumn + 3)]
+                sub_grid = [
+                    self._grid[i][j]
+                    for i in range(irow, irow + 3)
+                    for j in range(icolumn, icolumn + 3)
+                ]
                 if len(set(sub_grid) - {0}) != 9:
                     return False
         return True

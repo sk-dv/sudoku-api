@@ -16,7 +16,6 @@ class DifficultLevel(Enum):
 
 
 class SudokuGameGenerator:
-
     @staticmethod
     def generate_puzzle(iterations):
         solution = SudokuBoard()
@@ -57,7 +56,6 @@ class SudokuGameGenerator:
 
 
 class SudokuGame:
-
     def __init__(self, playable, solution, difficult_level, difficult_coefficient):
         self.playable = playable
         self.solution = solution
@@ -65,9 +63,15 @@ class SudokuGame:
         self.difficult_coefficient = difficult_coefficient
 
     def __str__(self):
-        return "**GAME** \n" + \
-               "Difficult: " + self.difficult_level.name + " (" + str(self.difficult_coefficient) + ")\n" + \
-               str(self.playable)
+        return (
+            "**GAME** \n"
+            + "Difficult: "
+            + self.difficult_level.name
+            + " ("
+            + str(self.difficult_coefficient)
+            + ")\n"
+            + str(self.playable)
+        )
 
 
 sg = SudokuGameGenerator.generate_puzzle(70)

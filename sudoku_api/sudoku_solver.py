@@ -1,5 +1,4 @@
 class SudokuSolver:
-
     def __init__(self, sudoku_board):
         self.sudoku_board = sudoku_board
         self._num_empty_cells = len(sudoku_board.get_empty_cells())
@@ -20,7 +19,11 @@ class SudokuSolver:
             if sudoku_board not in solutions:
                 solutions.append(sudoku_board)
             return
-        cells_to_solve.sort(key=lambda coords: len(sudoku_board.get_available_numbers(coords[0], coords[1])))
+        cells_to_solve.sort(
+            key=lambda coords: len(
+                sudoku_board.get_available_numbers(coords[0], coords[1])
+            )
+        )
 
         row_num, column_num = cells_to_solve.pop(0)
         available_numbers = sudoku_board.get_available_numbers(row_num, column_num)

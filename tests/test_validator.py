@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, main
 from sudoku_api.validator import Validator
 
 
@@ -39,7 +39,7 @@ class TestValidator(TestCase):
         [1, 4, 3, 8, 6, 5, 7, 2, 9],
     ]
 
-    SUDOKU_EX_A_D = [
+    SUDOKU_EX_D = [
         [4, 7, 8, 6, 2, 3, 9, 5, 1],
         [6, 2, 1, 9, 8, 5, 3, 7, 4],
         [3, 5, 9, 4, 1, 7, 6, 2, 8],
@@ -52,7 +52,11 @@ class TestValidator(TestCase):
     ]
 
     def test_validator(self):
-        self.assertTrue(Validator(self.SUDOKU_EX_A).validation(), "Should be True")
-        self.assertFalse(Validator(self.SUDOKU_EX_B).validation(), "Should be False")
-        self.assertFalse(Validator(self.SUDOKU_EX_C).validation(), "Should be False")
-        self.assertFalse(Validator(self.SUDOKU_EX_D).validation(), "Should be False")
+        self.assertTrue(Validator(self.SUDOKU_EX_A).is_valid, "Should be True")
+        self.assertFalse(Validator(self.SUDOKU_EX_B).is_valid, "Should be False")
+        self.assertFalse(Validator(self.SUDOKU_EX_C).is_valid, "Should be False")
+        self.assertTrue(Validator(self.SUDOKU_EX_D).is_valid, "Should be True")
+
+
+if __name__ == "__main__":
+    main()

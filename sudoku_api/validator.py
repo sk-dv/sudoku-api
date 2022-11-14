@@ -23,7 +23,11 @@ class Validator:
     def _check_sub_grids(self):
         for irow in range(0, self.SUDOKU_NUMBER, 3):
             for icolumn in range(0, self.SUDOKU_NUMBER, 3):
-                sub_grid = [self.matrix[i][j] for i in range(irow, irow + 3) for j in range(icolumn, icolumn + 3)]
+                sub_grid = [
+                    self.matrix[i][j]
+                    for i in range(irow, irow + 3)
+                    for j in range(icolumn, icolumn + 3)
+                ]
                 if len(set(sub_grid)) != self.SUDOKU_NUMBER:
                     return False
         return True

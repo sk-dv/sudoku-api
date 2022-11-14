@@ -39,6 +39,14 @@ Abrir ambiente en vscode
 
 <br>
 
+## Ejecutar pruebas
+
+```
+~$ python3 -m unittest tests/test_validator.py
+```
+
+<br>
+
 ## Referencias 
 
 [Python projects with Poetry and VSCode](https://www.pythoncheatsheet.org/blog/python-projects-with-poetry-and-vscode-part-1)

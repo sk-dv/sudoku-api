@@ -13,7 +13,7 @@
 | `poetry add -D <package-name>`    | Agrega un paquete de dev al ambiente virtual.         |
 | `poetry remove <package-name>`    | Quita un paquete del ambiente virtual.                |
 | `poetry remove -D <package-name>` | Quita un paquete de dev del ambiente virtual.         |
-| `poetry self:update`              | Actualiza a la última versión estable de poetry.      |
+| `poetry update`                   | Actualiza a la última versión estable de poetry.      |
 
 <br>
 

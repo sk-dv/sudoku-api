@@ -47,6 +47,24 @@ Abrir ambiente en vscode
 
 <br>
 
+## GraphQL Schema
+
+Correr servidor
+
+```
+~$ strawberry server graphql_schema:schema
+```
+
+Generar nuevo schema 
+
+```
+~$ strawberry export-schema graphql_schema:schema > ../schema.graphql
+```
+
+<br>
+
 ## Referencias 
+
+[Strawberry GraphQL Playground | Sudoku Game Example](https://play.strawberry.rocks/?gist=701a12d9374f01fc610afdf274aa6ad4)
 
 [Python projects with Poetry and VSCode](https://www.pythoncheatsheet.org/blog/python-projects-with-poetry-and-vscode-part-1)

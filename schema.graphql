@@ -1,0 +1,24 @@
+enum DifficultLevel {
+  VERY_EASY
+  EASY
+  MEDIUM
+  HARD
+  VERY_HARD
+  MASTER
+}
+
+type Query {
+  game(iterations: Int! = 70): SudokuGame!
+}
+
+type SudokuBoard {
+  isValid: Boolean!
+  grid: [[Int!]!]!
+}
+
+type SudokuGame {
+  playable: SudokuBoard!
+  solution: SudokuBoard!
+  difficultLevel: DifficultLevel!
+  difficultCoefficient: Float!
+}

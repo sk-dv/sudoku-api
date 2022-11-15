@@ -7,6 +7,7 @@ from sudoku_solver import SudokuSolver
 
 
 class DifficultLevel(Enum):
+    NONE = -1
     VERY_EASY = 2
     EASY = 3
     MEDIUM = 5
@@ -15,9 +16,35 @@ class DifficultLevel(Enum):
     MASTER = 100
 
 
+class SudokuGame:
+    def __init__(
+        self,
+        playable: SudokuBoard,
+        solution: SudokuBoard,
+        difficult_level: DifficultLevel,
+        difficult_coefficient: float,
+    ):
+        self.playable = playable
+        self.solution = solution
+        self.difficult_level = difficult_level
+        self.difficult_coefficient = difficult_coefficient
+
+    def __str__(self):
+        print(self.difficult_level.name)
+        return (
+            "**GAME** \n"
+            + "Difficult: "
+            + self.difficult_level.name
+            + " ("
+            + str(self.difficult_coefficient)
+            + ")\n"
+            + str(self.playable)
+        )
+
+
 class SudokuGameGenerator:
     @staticmethod
-    def generate_puzzle(iterations):
+    def generate_puzzle(iterations: int = 70) -> SudokuGame:
         solution = SudokuBoard()
         solution.build()
 
@@ -39,7 +66,7 @@ class SudokuGameGenerator:
             except:
                 continue
 
-        difficult_level = None
+        difficult_level = DifficultLevel.NONE
         if difficult_coefficient < DifficultLevel.VERY_EASY.value:
             difficult_level = DifficultLevel.VERY_EASY
         elif difficult_coefficient < DifficultLevel.EASY.value:
@@ -52,27 +79,5 @@ class SudokuGameGenerator:
             difficult_level = DifficultLevel.VERY_HARD
         elif difficult_coefficient < DifficultLevel.MASTER.value:
             difficult_level = DifficultLevel.MASTER
+
         return SudokuGame(playable, solution, difficult_level, difficult_coefficient)
-
-
-class SudokuGame:
-    def __init__(self, playable, solution, difficult_level, difficult_coefficient):
-        self.playable = playable
-        self.solution = solution
-        self.difficult_level = difficult_level
-        self.difficult_coefficient = difficult_coefficient
-
-    def __str__(self):
-        return (
-            "**GAME** \n"
-            + "Difficult: "
-            + self.difficult_level.name
-            + " ("
-            + str(self.difficult_coefficient)
-            + ")\n"
-            + str(self.playable)
-        )
-
-
-sg = SudokuGameGenerator.generate_puzzle(70)
-print(str(sg))

@@ -101,6 +101,7 @@ class SudokuBoard:
 
     @property
     def grid(self):
+        type(self._grid)
         return self._grid
 
     def __eq__(self, other):

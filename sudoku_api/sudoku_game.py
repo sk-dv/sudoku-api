@@ -1,13 +1,13 @@
 import random
 
-from enum import Enum
+import enum
+import strawberry
 
 from sudoku_board import SudokuBoard
 from sudoku_solver import SudokuSolver
 
-
-class DifficultLevel(Enum):
-    NONE = -1
+@strawberry.enum
+class DifficultLevel(enum.Enum):
     VERY_EASY = 2
     EASY = 3
     MEDIUM = 5
@@ -66,7 +66,7 @@ class SudokuGameGenerator:
             except:
                 continue
 
-        difficult_level = DifficultLevel.NONE
+        difficult_level = None
         if difficult_coefficient < DifficultLevel.VERY_EASY.value:
             difficult_level = DifficultLevel.VERY_EASY
         elif difficult_coefficient < DifficultLevel.EASY.value:

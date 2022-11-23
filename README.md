@@ -37,6 +37,12 @@ Abrir ambiente en vscode
 ~$ code .
 ```
 
+Generar `requirements.txt`
+
+```
+~$ poetry export --without-hashes --format=requirements.txt > requirements.txt
+```
+
 <br>
 
 ## Ejecutar pruebas

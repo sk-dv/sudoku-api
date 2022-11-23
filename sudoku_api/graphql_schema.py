@@ -2,7 +2,6 @@ import sudoku_game
 import typing
 import strawberry
 
-
 @strawberry.type
 class SudokuBoard:
     is_valid: bool

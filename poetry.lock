@@ -33,7 +33,7 @@ frozenlist = ">=1.1.0"
 name = "anyio"
 version = "3.6.2"
 description = "High level compatibility layer for multiple asynchronous event loop implementations"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6.2"
 
@@ -83,7 +83,7 @@ unicode_backport = ["unicodedata2"]
 name = "click"
 version = "8.1.3"
 description = "Composable command line interface toolkit"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -94,7 +94,7 @@ colorama = {version = "*", markers = "platform_system == \"Windows\""}
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
-category = "dev"
+category = "main"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
 
@@ -110,7 +110,7 @@ python-versions = ">=3.7"
 name = "graphql-core"
 version = "3.2.3"
 description = "GraphQL implementation for Python, a port of GraphQL.js, the JavaScript reference implementation for GraphQL."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6,<4"
 
@@ -118,7 +118,7 @@ python-versions = ">=3.6,<4"
 name = "h11"
 version = "0.14.0"
 description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -142,7 +142,7 @@ python-versions = ">=3.7"
 name = "pygments"
 version = "2.13.0"
 description = "Pygments is a syntax highlighting package written in Python."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -153,7 +153,7 @@ plugins = ["importlib-metadata"]
 name = "python-dateutil"
 version = "2.8.2"
 description = "Extensions to the standard Python datetime module"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
 
@@ -164,7 +164,7 @@ six = ">=1.5"
 name = "python-multipart"
 version = "0.0.5"
 description = "A streaming multipart parser for Python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -175,7 +175,7 @@ six = ">=1.4.0"
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 
@@ -183,7 +183,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 name = "sniffio"
 version = "1.3.0"
 description = "Sniff out which async library your code is running under"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -191,7 +191,7 @@ python-versions = ">=3.7"
 name = "starlette"
 version = "0.22.0"
 description = "The little ASGI library that shines."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -205,7 +205,7 @@ full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart", "pyyam
 name = "strawberry-graphql"
 version = "0.142.2"
 description = "A library for creating GraphQL APIs"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7,<4.0"
 
@@ -237,7 +237,7 @@ aiohttp = ["aiohttp (>=3.7.4.post0,<4.0.0)"]
 name = "typing-extensions"
 version = "4.4.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -245,7 +245,7 @@ python-versions = ">=3.7"
 name = "uvicorn"
 version = "0.19.0"
 description = "The lightning-fast ASGI server."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -271,7 +271,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "686a43aeed1a078e2e46aea2ef19b41eb5f8bcb86ba003bbda2bc15351c79271"
+content-hash = "d86fd0a9f85fca69b7b3ace822dc1ef8017dcecdd11cbd30db9eeaec8e146c99"
 
 [metadata.files]
 aiohttp = [

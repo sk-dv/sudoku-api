@@ -6,7 +6,7 @@ from graphql_schema import schema
 
 async def app():
     app = web.Application()
-    app.router.add_route("*", "/graphql", GraphQLView(schema=schema))
+    app.router.add_route("*", "/graphql", GraphQLView(schema=schema, graphiql=False))
     return app
 
 

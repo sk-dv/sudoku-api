@@ -1,5 +1,5 @@
 from unittest import TestCase, main
-from src.validator import Validator
+from sudoku_api.validator import Validator
 
 
 class TestValidator(TestCase):

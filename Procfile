@@ -1,0 +1,1 @@
+web: python -m sudoku_api.server

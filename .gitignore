@@ -1,4 +1,4 @@
 .DS_Store
-/src/__pycache__
+/sudoku_api/__pycache__
 /tests/__pycache__
-/src/.mypy_cache
+/sudoku_api/.mypy_cache

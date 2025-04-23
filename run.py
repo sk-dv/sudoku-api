@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from sudoku_api.server import app
+from src.server import app
 import aiohttp.web
 
 if __name__ == "__main__":

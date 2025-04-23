@@ -15,7 +15,7 @@ RUN poetry config virtualenvs.create false
 RUN poetry install
 
 # Copiar el código de la aplicación
-COPY sudoku_api/ .
+COPY src/ .
 
 ENV PORT=8080
 ENV GRAPHIQL=true

@@ -357,6 +357,9 @@ files = [
     {file = "graphql_core-3.2.6.tar.gz", hash = "sha256:c08eec22f9e40f0bd61d805907e3b3b1b9a320bc606e23dc145eebca07c8fbab"},
 ]
 
+[package.dependencies]
+typing-extensions = {version = ">=4,<5", markers = "python_version < \"3.10\""}
+
 [[package]]
 name = "h11"
 version = "0.14.0"
@@ -681,6 +684,7 @@ files = [
 
 [package.dependencies]
 anyio = ">=3.6.2,<5"
+typing-extensions = {version = ">=3.10.0", markers = "python_version < \"3.10\""}
 
 [package.extras]
 full = ["httpx (>=0.27.0,<0.29.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.18)", "pyyaml"]
@@ -869,5 +873,5 @@ propcache = ">=0.2.1"
 
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.10"
-content-hash = "7f95275b3ae48b73eb3ef0ad4c11636ed66a2321ad37d571bd09dd9bb12918a0"
+python-versions = "^3.9.22"
+content-hash = "13d21ff32d9d69589ca495ad5714237700cdb7d590f649e60cb1986b72f28045"

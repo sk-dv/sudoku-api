@@ -1,13 +1,14 @@
 [tool.poetry]
 name = "sudoku-api"
 version = "0.1.0"
-description = ""
+description = "GraphQL API for Sudoku game"
 authors = ["skdv <felipe.osrn@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 aiohttp = "^3.8.3"
 strawberry-graphql = {extras = ["debug-server"], version = "^0.142.2"}
+aiohttp-cors = "^0.8.1"
 
 [tool.poetry.dev-dependencies]
 

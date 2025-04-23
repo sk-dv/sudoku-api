@@ -19,8 +19,8 @@ class SudokuGame:
 @strawberry.type
 class Query:
     @strawberry.field
-    def game(self) -> SudokuGame:
-        return sudoku_game.SudokuGameGenerator.generate_puzzle()
+    def game(self, iterations: int = 70) -> SudokuGame:
+        return sudoku_game.SudokuGameGenerator.generate_puzzle(iterations)
 
 
 schema = strawberry.Schema(query=Query)

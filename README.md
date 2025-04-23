@@ -4,16 +4,19 @@
 
 ## Comandos
 
-| Comando                           | Descripción                                           |
-|-----------------------------------|-------------------------------------------------------|
-| `poetry new <package-name>`       | Inicia un nuevo proyecto de python.                   |
-| `poetry init`                     | Crea un archivo pyproject.toml interactivamente.      |
-| `poetry install`                  | Instala los paquetes del pyproject.toml.              |
-| `poetry add <package-name>`       | Agrega un paquete al ambiente virtual.                |
-| `poetry add -D <package-name>`    | Agrega un paquete de dev al ambiente virtual.         |
-| `poetry remove <package-name>`    | Quita un paquete del ambiente virtual.                |
-| `poetry remove -D <package-name>` | Quita un paquete de dev del ambiente virtual.         |
-| `poetry update`                   | Actualiza a la última versión estable de poetry.      |
+| Comando                                                                        | Descripción                                           |
+|--------------------------------------------------------------------------------|-------------------------------------------------------|
+| `poetry new <package-name>`                                                    | Inicia un nuevo proyecto de python.                   |
+| `poetry init`                                                                  | Crea un archivo pyproject.toml interactivamente.      |
+| `poetry install`                                                               | Instala los paquetes del pyproject.toml.              |
+| `poetry add <package-name>`                                                    | Agrega un paquete al ambiente virtual.                |
+| `poetry add -D <package-name>`                                                 | Agrega un paquete de dev al ambiente virtual.         |
+| `poetry remove <package-name>`                                                 | Quita un paquete del ambiente virtual.                |
+| `poetry remove -D <package-name>`                                              | Quita un paquete de dev del ambiente virtual.         |
+| `poetry update`                                                                | Actualiza a la última versión estable de poetry.      |
+| `poetry run python run.py`                                                     | Ejecución en ambiente local                           |
+| `poetry lock`                                                                  | Bloquea las versiones de las dependencias             |
+| `poetry export -f requirements.txt --output requirements.txt --without-hashes` | Configura Poetry para exportar requirements.txt
 
 <br>
 

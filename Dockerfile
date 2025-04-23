@@ -12,7 +12,7 @@ COPY pyproject.toml poetry.lock* ./
 RUN poetry config virtualenvs.create false
 
 # Instalar dependencias
-RUN poetry install --no-dev
+RUN poetry install
 
 # Copiar el código de la aplicación
 COPY sudoku_api/ .

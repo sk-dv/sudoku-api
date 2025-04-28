@@ -2,3 +2,4 @@
 /sudoku_api/__pycache__
 /tests/__pycache__
 /sudoku_api/.mypy_cache
+.vscode

@@ -1,9 +1,0 @@
-{
-    "build": {
-        "builder": "NIXPACKS",
-        "buildCommand": "poetry install --only main"
-    },
-    "run": {
-        "command": "python -m sudoku_api.server"
-    }
-}

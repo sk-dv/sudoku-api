@@ -2,8 +2,8 @@ import random
 import enum
 from typing import Callable, Generator, Optional, Tuple, List
 
-from sudoku_board import SudokuBoard
-from sudoku_solver_optimized import OptimizedSudokuSolver
+from sudoku_api.sudoku_board import SudokuBoard
+from sudoku_api.sudoku_solver_optimized import OptimizedSudokuSolver
 
 
 class DifficultLevel(enum.Enum):

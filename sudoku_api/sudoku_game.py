@@ -2,8 +2,8 @@ import random
 
 import enum
 
-from sudoku_board import SudokuBoard
-from sudoku_solver import SudokuSolver
+from sudoku_api.sudoku_board import SudokuBoard
+from sudoku_api.sudoku_solver import SudokuSolver
 
 class DifficultLevel(enum.Enum):
     VERY_EASY = 2

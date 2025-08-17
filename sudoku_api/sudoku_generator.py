@@ -1,7 +1,7 @@
 import random
 import time
 from typing import List, Tuple
-from sudoku_board import SudokuBoard
+from sudoku_api.sudoku_board import SudokuBoard
 
 
 class FastSudokuSolver:
@@ -125,7 +125,7 @@ class OptimizedSudokuGenerator:
                 puzzle.assign(row, col, original_value)
 
         # Crear objeto compatible con la estructura original
-        from sudoku_game import DifficultLevel, SudokuGame
+        from sudoku_api.sudoku_game import DifficultLevel, SudokuGame
 
         # Clasificar dificultad
         if current_difficulty < DifficultLevel.VERY_EASY.value:

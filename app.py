@@ -1,16 +1,14 @@
 from flask import Flask, request, Response, jsonify
 from flask_cors import CORS
+
 import os
-import sys
 import json
 import time
 
-# Agregar el directorio sudoku_api al path
-sys.path.append(os.path.join(os.path.dirname(__file__), "sudoku_api"))
 
 from sudoku_api.sudoku_game_optimazed import OptimizedSudokuGameGenerator
 from sudoku_api.sudoku_game import SudokuGameGenerator
-from validator import Validator
+from sudoku_api.validator import Validator
 
 app = Flask(__name__)
 CORS(app)  # Habilitar CORS para multiplataforma
@@ -261,7 +259,7 @@ def solve_board():
             }, 400
 
         # Importar aquí para evitar importaciones circulares
-        from sudoku_board import SudokuBoard
+        from sudoku_api.sudoku_board import SudokuBoard
         from sudoku_api.sudoku_game_optimazed import OptimizedSudokuSolver
 
         # Crear board desde la grid recibida

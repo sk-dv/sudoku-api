@@ -1,7 +1,2 @@
-.DS_Store
-/sudoku_api/__pycache__
-/tests/__pycache__
-/sudoku_api/.mypy_cache
-.vscode
-__pycache__
-.pytest_cache
+/venv
+**/__pycache__

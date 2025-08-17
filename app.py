@@ -1,14 +1,19 @@
-from flask import Flask, request
+from flask import Flask, request, Response, jsonify
+from flask_cors import CORS
 import os
 import sys
+import json
+import time
 
 # Agregar el directorio sudoku_api al path
 sys.path.append(os.path.join(os.path.dirname(__file__), "sudoku_api"))
 
-from sudoku_game import SudokuGameGenerator
+from sudoku_api.sudoku_game_optimazed import OptimizedSudokuGameGenerator
+from sudoku_api.sudoku_game import SudokuGameGenerator
 from validator import Validator
 
 app = Flask(__name__)
+CORS(app)  # Habilitar CORS para multiplataforma
 
 # Configuración
 app.config["JSON_SORT_KEYS"] = False
@@ -17,13 +22,13 @@ app.config["JSON_SORT_KEYS"] = False
 @app.route("/")
 def health():
     """Health check endpoint"""
-    return {"status": "ok", "service": "sudoku-api", "version": "1.0.0"}, 200
+    return {"status": "ok", "service": "sudoku-api", "version": "2.0.0"}, 200
 
 
 @app.route("/api/game", methods=["GET"])
 def generate_game():
     """
-    Genera un nuevo juego de Sudoku
+    Genera un nuevo juego de Sudoku (versión original)
     Query parameters:
     - iterations: número de iteraciones para generar dificultad (10-200, default: 70)
     """
@@ -66,6 +71,108 @@ def generate_game():
 
     except Exception as e:
         return {"error": "Failed to generate game", "message": str(e)}, 500
+
+
+@app.route("/api/game/stream", methods=["GET"])
+def generate_game_with_progress():
+    """
+    Genera un nuevo juego de Sudoku con progreso en tiempo real vía SSE
+    Query parameters:
+    - iterations: número de iteraciones (10-200, default: 70)
+    """
+    iterations = request.args.get("iterations", 70, type=int)
+
+    # Validar iterations
+    if not 10 <= iterations <= 200:
+        return (
+            jsonify(
+                {
+                    "error": "Invalid iterations parameter",
+                    "message": "iterations must be between 10 and 200",
+                }
+            ),
+            400,
+        )
+
+    def generate():
+        """Generador de eventos SSE"""
+        try:
+            # Enviar evento inicial
+            yield f"data: {json.dumps({'progress': 0, 'status': 'initializing', 'message': 'Creando tablero base...'})}\n\n"
+
+            # Usar el generador optimizado con callback de progreso
+            def progress_callback(current, total, message="", partial_grid=None):
+                progress_data = {
+                    "progress": round((current / total) * 100, 1),
+                    "current": current,
+                    "total": total,
+                    "status": "processing",
+                    "message": message,
+                }
+
+                # Incluir grid parcial si está disponible (opcional)
+                if partial_grid:
+                    progress_data["partial_grid"] = partial_grid
+
+                return f"data: {json.dumps(progress_data)}\n\n"
+
+            # Generar el juego con progreso
+            generator = OptimizedSudokuGameGenerator()
+
+            # Stream de actualizaciones durante la generación
+            for update in generator.generate_puzzle_with_progress(
+                iterations, progress_callback
+            ):
+                yield update
+                time.sleep(0.01)  # Pequeña pausa para no saturar
+
+            # Obtener el juego final
+            game = generator.get_final_game()
+
+            # Enviar resultado final
+            final_data = {
+                "progress": 100,
+                "status": "completed",
+                "message": "Juego generado exitosamente",
+                "game": {
+                    "playable": {
+                        "grid": game.playable.grid,
+                        "is_valid": game.playable.is_valid,
+                    },
+                    "solution": {
+                        "grid": game.solution.grid,
+                        "is_valid": game.solution.is_valid,
+                    },
+                    "difficulty": {
+                        "level": game.difficult_level.name,
+                        "coefficient": round(game.difficult_coefficient, 2),
+                    },
+                    "metadata": {
+                        "iterations_used": iterations,
+                        "empty_cells": len(game.playable.get_empty_cells()),
+                    },
+                },
+            }
+
+            yield f"data: {json.dumps(final_data)}\n\n"
+
+        except Exception as e:
+            error_data = {
+                "progress": -1,
+                "status": "error",
+                "message": f"Error generando juego: {str(e)}",
+            }
+            yield f"data: {json.dumps(error_data)}\n\n"
+
+    return Response(
+        generate(),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",  # Desactivar buffering en nginx
+            "Connection": "keep-alive",
+        },
+    )
 
 
 @app.route("/api/validate", methods=["POST"])
@@ -155,7 +262,7 @@ def solve_board():
 
         # Importar aquí para evitar importaciones circulares
         from sudoku_board import SudokuBoard
-        from sudoku_solver import SudokuSolver
+        from sudoku_api.sudoku_game_optimazed import OptimizedSudokuSolver
 
         # Crear board desde la grid recibida
         board = SudokuBoard(data["grid"])
@@ -170,8 +277,8 @@ def solve_board():
                 },
             }, 200
 
-        # Resolver
-        solver = SudokuSolver(board)
+        # Resolver con el solver optimizado
+        solver = OptimizedSudokuSolver(board)
         solution = solver.solve()
 
         return {
@@ -196,6 +303,7 @@ def not_found(error):
         "available_endpoints": [
             "GET /",
             "GET /api/game",
+            "GET /api/game/stream",
             "POST /api/validate",
             "POST /api/solve",
         ],
@@ -224,5 +332,7 @@ if __name__ == "__main__":
 
     print(f"Starting Sudoku API on port {port}")
     print(f"Debug mode: {debug}")
+    print("New endpoints available:")
+    print("  - GET /api/game/stream for real-time progress")
 
     app.run(host="0.0.0.0", port=port, debug=debug)

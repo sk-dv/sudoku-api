@@ -215,11 +215,11 @@ poetry run python app.py
 poetry run python -m unittest tests/test_api.py
 
 # Generar requirements.txt
+Instalar los siguientes paquetes en el ambiente: 
+pip install poetry-plugin-export python-inspector
+
 poetry export --without-hashes --format=requirements.txt > requirements.txt
 
 # Formatear código
 poetry run black .
-
-# Linting
-poetry run flake8 .
 ```

@@ -1,78 +1,225 @@
-# Sudoku
+# Sudoku API REST
 
-<br>
+API REST para generar, validar y resolver tableros de Sudoku con diferentes niveles de dificultad.
 
-## Comandos
+## 🚀 Características
 
-| Comando                            | Descripción                                           |
-|------------------------------------|-------------------------------------------------------|
-| `poetry new <package-name>`        | Inicia un nuevo proyecto de python.                   |
-| `poetry init`                      | Crea un archivo pyproject.toml interactivamente.      |
-| `poetry install`                   | Instala los paquetes del pyproject.toml.              |
-| `poetry add <package-name>`        | Agrega un paquete al ambiente virtual.                |
-| `poetry add -D <package-name>`     | Agrega un paquete de dev al ambiente virtual.         |
-| `poetry remove <package-name>`     | Quita un paquete del ambiente virtual.                |
-| `poetry remove -D <package-name>`  | Quita un paquete de dev del ambiente virtual.         |
-| `poetry update`                    | Actualiza a la última versión estable de poetry.      |
-| `poetry run python run.py`         | Ejecución en ambiente local                           |
-| `poetry lock`                      | Bloquea las versiones de las dependencias             |
+- **Generación de juegos**: Crea tableros de Sudoku con dificultad personalizable
+- **Validación**: Verifica si un tablero de Sudoku es válido
+- **Resolución**: Resuelve tableros parcialmente completados
+- **Múltiples niveles**: VERY_EASY, EASY, MEDIUM, HARD, VERY_HARD, MASTER
 
-<br>
+## 📋 Requisitos
 
-## Ambiente local en vscode
+- Python 3.9+
+- Poetry (recomendado para desarrollo)
 
-Actualizar dependencias de poetry
+## 🛠️ Instalación
 
-```
-~$ poetry update
-```
+### Con Poetry (recomendado)
 
-Iniciar ambiente virtual
+```bash
+# Clonar repositorio
+git clone <tu-repo>
+cd sudoku-api
 
-```
-~$ poetry shell
-```
+# Instalar dependencias
+poetry install
 
-Abrir ambiente en vscode
+# Activar ambiente virtual
+poetry shell
 
-```
-~$ code .
+# Ejecutar servidor
+poetry run python app.py
 ```
 
-Generar `requirements.txt`
+### Con pip
 
-```
-~$ poetry export --without-hashes --format=requirements.txt > requirements.txt
-```
+```bash
+# Instalar dependencias
+pip install -r requirements.txt
 
-<br>
-
-## Ejecutar pruebas
-
-```
-~$ python3 -m unittest tests/test_validator.py
+# Ejecutar servidor
+python app.py
 ```
 
-<br>
+## 🔗 Endpoints
 
-## GraphQL Schema
+### Health Check
 
-Correr servidor
-
-```
-~$ strawberry server graphql_schema:schema
+```http
+GET /
 ```
 
-Generar nuevo schema 
+**Respuesta:**
+
+```json
+{
+  "status": "ok",
+  "service": "sudoku-api",
+  "version": "1.0.0"
+}
+```
+
+### Generar Juego
+
+```http
+GET /api/game?iterations=70
+```
+
+**Parámetros:**
+
+- `iterations` (opcional): Número de iteraciones (10-200, default: 70)
+
+**Respuesta:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "playable": {
+      "grid": [[1,2,3,...], ...],
+      "is_valid": false
+    },
+    "solution": {
+      "grid": [[1,2,3,...], ...],
+      "is_valid": true
+    },
+    "difficulty": {
+      "level": "MEDIUM",
+      "coefficient": 4.25
+    },
+    "metadata": {
+      "iterations_used": 70,
+      "empty_cells": 45
+    }
+  }
+}
+```
+
+### Validar Tablero
+
+```http
+POST /api/validate
+Content-Type: application/json
+
+{
+  "grid": [[1,2,3,4,5,6,7,8,9], ...]
+}
+```
+
+**Respuesta:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "is_valid": true,
+    "grid": [[1,2,3,...], ...],
+    "validation_details": {
+      "total_cells": 81,
+      "filled_cells": 81,
+      "empty_cells": 0
+    }
+  }
+}
+```
+
+### Resolver Tablero
+
+```http
+POST /api/solve
+Content-Type: application/json
+
+{
+  "grid": [[1,2,0,4,5,6,7,8,9], ...]  // 0 = celda vacía
+}
+```
+
+**Respuesta:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "original_grid": [[1,2,0,...], ...],
+    "solved_grid": [[1,2,3,...], ...],
+    "difficulty_coefficient": 3.45,
+    "steps_taken": "Solved successfully"
+  }
+}
+```
+
+## 🧪 Testing
+
+```bash
+# Ejecutar todos los tests
+poetry run python -m unittest tests/test_api.py
+
+# O con pytest (si lo instalas)
+poetry add --group dev pytest
+poetry run pytest tests/
+```
+
+## 🚀 Despliegue
+
+### Railway (Recomendado)
+
+1. Conecta tu repositorio a [Railway](https://railway.app)
+2. Railway detectará automáticamente el proyecto Python
+3. Se desplegará automáticamente
+
+### Variables de entorno
+
+```bash
+PORT=8000                    # Puerto del servidor
+FLASK_ENV=production        # Ambiente (development/production)
+```
+
+## 📁 Estructura del Proyecto
 
 ```
-~$ strawberry export-schema graphql_schema:schema > ../schema.graphql
+sudoku-api/
+├── app.py                  # Aplicación Flask principal
+├── requirements.txt        # Dependencias para producción
+├── pyproject.toml         # Configuración Poetry
+├── sudoku_api/
+│   ├── __init__.py
+│   ├── sudoku_board.py    # Lógica del tablero
+│   ├── sudoku_game.py     # Generación de juegos
+│   ├── sudoku_solver.py   # Algoritmo de resolución
+│   └── validator.py       # Validación de tableros
+└── tests/
+    ├── test_api.py        # Tests de la API REST
+    └── test_validator.py  # Tests del validador
 ```
 
-<br>
+## 📚 Niveles de Dificultad
 
-## Referencias 
+| Nivel     | Coeficiente | Descripción                          |
+| --------- | ----------- | ------------------------------------ |
+| VERY_EASY | < 2         | Muy fácil, pocas opciones por celda  |
+| EASY      | 2-3         | Fácil, suitable para principiantes   |
+| MEDIUM    | 3-5         | Intermedio, requiere algo de lógica  |
+| HARD      | 5-7         | Difícil, requiere técnicas avanzadas |
+| VERY_HARD | 7-10        | Muy difícil, para expertos           |
+| MASTER    | 10+         | Maestro, extremadamente desafiante   |
 
-[Strawberry GraphQL Playground | Sudoku Game Example](https://play.strawberry.rocks/?gist=701a12d9374f01fc610afdf274aa6ad4)
+## 🔄 Comandos útiles
 
-[Python projects with Poetry and VSCode](https://www.pythoncheatsheet.org/blog/python-projects-with-poetry-and-vscode-part-1)
+```bash
+# Desarrollo
+poetry run python app.py
+
+# Testing
+poetry run python -m unittest tests/test_api.py
+
+# Generar requirements.txt
+poetry export --without-hashes --format=requirements.txt > requirements.txt
+
+# Formatear código
+poetry run black .
+
+# Linting
+poetry run flake8 .
+```

@@ -1,12 +1,10 @@
 import random
 
 import enum
-import strawberry
 
 from sudoku_board import SudokuBoard
 from sudoku_solver import SudokuSolver
 
-@strawberry.enum
 class DifficultLevel(enum.Enum):
     VERY_EASY = 2
     EASY = 3

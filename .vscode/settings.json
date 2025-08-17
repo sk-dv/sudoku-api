@@ -1,9 +1,5 @@
 {
     "python.poetryPath": "poetry",
-    "python.formatting.provider": "black",
-    "python.linting.flake8Args": [
-        "--max-line-length=88"
-    ],
     "python.testing.unittestArgs": [
         "-v",
         "-s",
@@ -13,4 +9,7 @@
     ],
     "python.testing.pytestEnabled": false,
     "python.testing.unittestEnabled": true,
+    "python.analysis.extraPaths": [
+        "./sudoku_api"
+    ],
 }

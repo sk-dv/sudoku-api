@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "sudoku-api"
+version = "1.0.0"
+description = "API REST para generar y validar juegos de Sudoku"
+readme = "README.md"
+packages = [{include = "sudoku_api"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+flask = "^3.0.3"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.0.0"
+flake8 = "^6.0.0"
+pytest = "^7.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]

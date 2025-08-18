@@ -5,10 +5,12 @@ import os
 import json
 import time
 
-
+from sudoku_api.database import PuzzleDB
 from sudoku_api.sudoku_game_optimazed import OptimizedSudokuGameGenerator
 from sudoku_api.sudoku_game import SudokuGameGenerator
 from sudoku_api.validator import Validator
+
+puzzle_db = PuzzleDB()
 
 app = Flask(__name__)
 CORS(app)  # Habilitar CORS para multiplataforma
@@ -25,26 +27,55 @@ def health():
 
 @app.route("/api/game", methods=["GET"])
 def generate_game():
-    """
-    Genera un nuevo juego de Sudoku (versión original)
-    Query parameters:
-    - iterations: número de iteraciones para generar dificultad (10-200, default: 70)
-    """
     try:
-        # Obtener parámetros
         iterations = request.args.get("iterations", 70, type=int)
 
-        # Validar iterations
         if not 10 <= iterations <= 200:
-            return {
-                "error": "Invalid iterations parameter",
-                "message": "iterations must be between 10 and 200",
-                "received": iterations,
-            }, 400
+            return {"error": "Invalid iterations parameter"}, 400
 
-        # Generar juego
+        # Estimar dificultad y celdas vacías
+        target_empty = int(iterations * 0.6)  # Aproximación
+        estimated_difficulty = "MEDIUM"
+        if target_empty < 35:
+            estimated_difficulty = "EASY"
+        elif target_empty > 55:
+            estimated_difficulty = "HARD"
+
+        # Buscar en BD primero
+        cached_puzzle = puzzle_db.find_puzzle(estimated_difficulty, target_empty)
+
+        if cached_puzzle:
+            # Respuesta rápida desde BD
+            return {
+                "success": True,
+                "data": {
+                    "playable": {
+                        "grid": cached_puzzle["playable_grid"],
+                        "is_valid": False,
+                    },
+                    "solution": {
+                        "grid": cached_puzzle["solution_grid"],
+                        "is_valid": True,
+                    },
+                    "difficulty": {
+                        "level": cached_puzzle["difficulty"],
+                        "coefficient": round(cached_puzzle["coefficient"], 2),
+                    },
+                    "metadata": {
+                        "iterations_used": iterations,
+                        "empty_cells": cached_puzzle["empty_cells"],
+                        "cached": True,
+                    },
+                },
+            }, 200
+
+        # Si no existe, generar nuevo
         game = SudokuGameGenerator.generate_puzzle(iterations)
 
+        # Guardar en BD para próximas veces
+        puzzle_db.save_puzzle(game)
+
+        # Respuesta normal
         return {
             "success": True,
             "data": {
@@ -63,114 +94,13 @@ def generate_game():
                 "metadata": {
                     "iterations_used": iterations,
                     "empty_cells": len(game.playable.get_empty_cells()),
+                    "cached": False,
                 },
             },
         }, 200
 
     except Exception as e:
         return {"error": "Failed to generate game", "message": str(e)}, 500
-
-
-@app.route("/api/game/stream", methods=["GET"])
-def generate_game_with_progress():
-    """
-    Genera un nuevo juego de Sudoku con progreso en tiempo real vía SSE
-    Query parameters:
-    - iterations: número de iteraciones (10-200, default: 70)
-    """
-    iterations = request.args.get("iterations", 70, type=int)
-
-    # Validar iterations
-    if not 10 <= iterations <= 200:
-        return (
-            jsonify(
-                {
-                    "error": "Invalid iterations parameter",
-                    "message": "iterations must be between 10 and 200",
-                }
-            ),
-            400,
-        )
-
-    def generate():
-        """Generador de eventos SSE"""
-        try:
-            # Enviar evento inicial
-            yield f"data: {json.dumps({'progress': 0, 'status': 'initializing', 'message': 'Creando tablero base...'})}\n\n"
-
-            # Usar el generador optimizado con callback de progreso
-            def progress_callback(current, total, message="", partial_grid=None):
-                progress_data = {
-                    "progress": round((current / total) * 100, 1),
-                    "current": current,
-                    "total": total,
-                    "status": "processing",
-                    "message": message,
-                }
-
-                # Incluir grid parcial si está disponible (opcional)
-                if partial_grid:
-                    progress_data["partial_grid"] = partial_grid
-
-                return f"data: {json.dumps(progress_data)}\n\n"
-
-            # Generar el juego con progreso
-            generator = OptimizedSudokuGameGenerator()
-
-            # Stream de actualizaciones durante la generación
-            for update in generator.generate_puzzle_with_progress(
-                iterations, progress_callback
-            ):
-                yield update
-                time.sleep(0.01)  # Pequeña pausa para no saturar
-
-            # Obtener el juego final
-            game = generator.get_final_game()
-
-            # Enviar resultado final
-            final_data = {
-                "progress": 100,
-                "status": "completed",
-                "message": "Juego generado exitosamente",
-                "game": {
-                    "playable": {
-                        "grid": game.playable.grid,
-                        "is_valid": game.playable.is_valid,
-                    },
-                    "solution": {
-                        "grid": game.solution.grid,
-                        "is_valid": game.solution.is_valid,
-                    },
-                    "difficulty": {
-                        "level": game.difficult_level.name,
-                        "coefficient": round(game.difficult_coefficient, 2),
-                    },
-                    "metadata": {
-                        "iterations_used": iterations,
-                        "empty_cells": len(game.playable.get_empty_cells()),
-                    },
-                },
-            }
-
-            yield f"data: {json.dumps(final_data)}\n\n"
-
-        except Exception as e:
-            error_data = {
-                "progress": -1,
-                "status": "error",
-                "message": f"Error generando juego: {str(e)}",
-            }
-            yield f"data: {json.dumps(error_data)}\n\n"
-
-    return Response(
-        generate(),
-        mimetype="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",  # Desactivar buffering en nginx
-            "Connection": "keep-alive",
-        },
-    )
 
 
 @app.route("/api/validate", methods=["POST"])
@@ -301,7 +231,6 @@ def not_found(error):
         "available_endpoints": [
             "GET /",
             "GET /api/game",
-            "GET /api/game/stream",
             "POST /api/validate",
             "POST /api/solve",
         ],

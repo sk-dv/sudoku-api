@@ -1,17 +1,21 @@
 # Sudoku API REST
 
-API REST para generar, validar y resolver tableros de Sudoku con diferentes niveles de dificultad.
+API REST para generar, validar y resolver tableros de Sudoku con diferentes niveles de dificultad. Incluye documentación interactiva con Swagger UI.
 
 ## 🚀 Características
 
 - **Generación de juegos**: Crea tableros de Sudoku con dificultad personalizable
+- **Puzzle diario**: Sistema de puzzle del día por nivel de dificultad
 - **Validación**: Verifica si un tablero de Sudoku es válido
 - **Resolución**: Resuelve tableros parcialmente completados
-- **Múltiples niveles**: VERY_EASY, EASY, MEDIUM, HARD, VERY_HARD, MASTER
+- **Múltiples niveles**: EASY, MEDIUM, HARD, EXPERT, MASTER
+- **Caché de puzzles**: Base de datos PostgreSQL con puzzles pre-generados
+- **Documentación Swagger**: Interfaz interactiva en `/api/docs`
 
 ## 📋 Requisitos
 
 - Python 3.9+
+- PostgreSQL (para producción)
 - Poetry (recomendado para desarrollo)
 
 ## 🛠️ Instalación
@@ -43,112 +47,66 @@ pip install -r requirements.txt
 python app.py
 ```
 
-## 🔗 Endpoints
+## 📖 Documentación
 
-### Health Check
+Accede a la documentación interactiva Swagger UI en:
 
-```http
-GET /
+```
+https://tu-app.railway.app/api/docs
 ```
 
-**Respuesta:**
+## 🔗 Endpoints Principales
 
-```json
-{
-  "status": "ok",
-  "service": "sudoku-api",
-  "version": "1.0.0"
-}
-```
+### 📊 GET `/api/boards`
 
-### Generar Juego
+Obtiene resumen de tableros disponibles por dificultad.
 
-```http
-GET /api/game?iterations=70
-```
+### 📅 GET `/api/daily?difficulty=MEDIUM`
+
+Obtiene el puzzle del día (un puzzle único por día y dificultad).
 
 **Parámetros:**
 
-- `iterations` (opcional): Número de iteraciones (10-200, default: 70)
+- `difficulty` (opcional): EASY | MEDIUM | HARD | EXPERT | MASTER
 
-**Respuesta:**
+### 🎮 GET `/api/game?iterations=70&difficulty=MEDIUM`
+
+Genera o recupera un puzzle de Sudoku (usa caché de BD si existe).
+
+**Parámetros:**
+
+- `iterations` (opcional): 10-200 (default: 70)
+- `difficulty` (opcional): EASY | MEDIUM | HARD | EXPERT | MASTER
+
+### 📈 GET `/api/stats`
+
+Obtiene estadísticas de puzzles disponibles.
+
+### ✅ POST `/api/validate`
+
+Valida un tablero de Sudoku.
+
+**Body:**
 
 ```json
-{
-  "success": true,
-  "data": {
-    "playable": {
-      "grid": [[1,2,3,...], ...],
-      "is_valid": false
-    },
-    "solution": {
-      "grid": [[1,2,3,...], ...],
-      "is_valid": true
-    },
-    "difficulty": {
-      "level": "MEDIUM",
-      "coefficient": 4.25
-    },
-    "metadata": {
-      "iterations_used": 70,
-      "empty_cells": 45
-    }
-  }
-}
-```
-
-### Validar Tablero
-
-```http
-POST /api/validate
-Content-Type: application/json
-
 {
   "grid": [[1,2,3,4,5,6,7,8,9], ...]
 }
 ```
 
-**Respuesta:**
+### 🧩 POST `/api/solve`
+
+Resuelve un tablero parcialmente completado.
+
+**Body:**
 
 ```json
-{
-  "success": true,
-  "data": {
-    "is_valid": true,
-    "grid": [[1,2,3,...], ...],
-    "validation_details": {
-      "total_cells": 81,
-      "filled_cells": 81,
-      "empty_cells": 0
-    }
-  }
-}
-```
-
-### Resolver Tablero
-
-```http
-POST /api/solve
-Content-Type: application/json
-
 {
   "grid": [[1,2,0,4,5,6,7,8,9], ...]  // 0 = celda vacía
 }
 ```
 
-**Respuesta:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "original_grid": [[1,2,0,...], ...],
-    "solved_grid": [[1,2,3,...], ...],
-    "difficulty_coefficient": 3.45,
-    "steps_taken": "Solved successfully"
-  }
-}
-```
+> **Nota**: Para ver ejemplos de respuesta y probar los endpoints, visita `/api/docs`
 
 ## 🧪 Testing
 
@@ -172,19 +130,23 @@ poetry run pytest tests/
 ### Variables de entorno
 
 ```bash
-PORT=8000                    # Puerto del servidor
-FLASK_ENV=production        # Ambiente (development/production)
+PORT=8000                         # Puerto del servidor
+FLASK_ENV=production              # Ambiente (development/production)
+DATABASE_URL=postgresql://...     # URL de PostgreSQL (Railway lo configura automáticamente)
 ```
 
 ## 📁 Estructura del Proyecto
 
 ```
 sudoku-api/
-├── app.py                  # Aplicación Flask principal
+├── app.py                  # Aplicación Flask principal con Swagger
 ├── requirements.txt        # Dependencias para producción
 ├── pyproject.toml         # Configuración Poetry
+├── migrations/            # Migraciones de base de datos
+│   └── add_date_assigned.sql
 ├── sudoku_api/
 │   ├── __init__.py
+│   ├── database.py        # Conexión PostgreSQL y queries
 │   ├── sudoku_board.py    # Lógica del tablero
 │   ├── sudoku_game.py     # Generación de juegos
 │   ├── sudoku_solver.py   # Algoritmo de resolución
@@ -196,14 +158,13 @@ sudoku-api/
 
 ## 📚 Niveles de Dificultad
 
-| Nivel     | Coeficiente | Descripción                          |
-| --------- | ----------- | ------------------------------------ |
-| VERY_EASY | < 2         | Muy fácil, pocas opciones por celda  |
-| EASY      | 2-3         | Fácil, suitable para principiantes   |
-| MEDIUM    | 3-5         | Intermedio, requiere algo de lógica  |
-| HARD      | 5-7         | Difícil, requiere técnicas avanzadas |
-| VERY_HARD | 7-10        | Muy difícil, para expertos           |
-| MASTER    | 10+         | Maestro, extremadamente desafiante   |
+| Nivel  | Descripción                          |
+| ------ | ------------------------------------ |
+| EASY   | Fácil, suitable para principiantes   |
+| MEDIUM | Intermedio, requiere algo de lógica  |
+| HARD   | Difícil, requiere técnicas avanzadas |
+| EXPERT | Muy difícil, para expertos           |
+| MASTER | Maestro, extremadamente desafiante   |
 
 ## 🔄 Comandos útiles
 

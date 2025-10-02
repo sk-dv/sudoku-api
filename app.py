@@ -27,7 +27,6 @@ api = Api(
 )
 
 # Namespaces
-ns_health = api.namespace("", description="Health check")
 ns_puzzles = api.namespace("api", description="Puzzle operations")
 
 # Modelos para documentación
@@ -83,11 +82,10 @@ game_response_model = api.model(
 )
 
 
-@ns_health.route("/")
-class Health(Resource):
-    def get(self):
-        """Health check endpoint"""
-        return {"status": "ok", "service": "sudoku-api", "version": "2.0.0"}
+@app.route("/")
+def health():
+    """Health check endpoint"""
+    return {"status": "ok", "service": "sudoku-api", "version": "2.0.0"}, 200
 
 
 @ns_puzzles.route("/boards")

@@ -30,7 +30,7 @@ class PuzzleDB:
                 )
                 conn.commit()
 
-    def find_puzzle(self, difficulty, target_empty_cells):
+    def find_puzzle(self, difficulty):
         """Buscar puzzle similar en BD"""
         with self.get_connection() as conn:
             with conn.cursor() as cur:
@@ -38,12 +38,11 @@ class PuzzleDB:
                 cur.execute(
                     """
                     SELECT * FROM puzzles 
-                    WHERE difficulty = %s 
-                    AND empty_cells BETWEEN %s AND %s
+                    WHERE difficulty = %s
                     ORDER BY RANDOM() 
                     LIMIT 1
                 """,
-                    (difficulty, target_empty_cells - 5, target_empty_cells + 5),
+                    (difficulty,),
                 )
 
                 return cur.fetchone()
@@ -56,4 +55,62 @@ class PuzzleDB:
                     "SELECT COUNT(*) as count FROM puzzles WHERE difficulty = %s",
                     (difficulty,),
                 )
+                return cur.fetchone()["count"]
+            
+    def get_boards(self):
+        """Obtiene todos los tableros de Sudoku y un mapa de cuántos hay por dificultad"""
+        with self.get_connection() as conn:
+            with conn.cursor() as cur:
+                # Obtener el conteo por dificultad
+                cur.execute("SELECT difficulty, COUNT(*) as count FROM puzzles GROUP BY difficulty")
+                counts = {row['difficulty']: row['count'] for row in cur.fetchall()}
+                return {"boards": counts}
+
+    def find_daily_puzzle(self, difficulty, date):
+        """Buscar puzzle asignado para una fecha específica"""
+        with self.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT * FROM puzzles
+                    WHERE difficulty = %s AND date_assigned = %s
+                    LIMIT 1
+                    """,
+                    (difficulty, date),
+                )
+                return cur.fetchone()
+
+    def assign_daily_puzzle(self, difficulty, date):
+        """Asignar un puzzle random para el día"""
+        with self.get_connection() as conn:
+            with conn.cursor() as cur:
+                # Actualizar un puzzle random con la fecha
+                cur.execute(
+                    """
+                    UPDATE puzzles
+                    SET date_assigned = %s
+                    WHERE id = (
+                        SELECT id FROM puzzles
+                        WHERE difficulty = %s AND date_assigned IS NULL
+                        ORDER BY RANDOM() LIMIT 1
+                    )
+                    RETURNING *
+                    """,
+                    (date, difficulty),
+                )
+                conn.commit()
+                return cur.fetchone()
+
+    def count_all_puzzles(self):
+        """Contar todos los puzzles en BD"""
+        with self.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT COUNT(*) as count FROM puzzles")
+                return cur.fetchone()["count"]
+
+    def count_daily_assigned(self):
+        """Contar puzzles asignados a fechas"""
+        with self.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT COUNT(*) as count FROM puzzles WHERE date_assigned IS NOT NULL")
                 return cur.fetchone()["count"]

@@ -1,9 +1,7 @@
-from flask import Flask, request, Response
+from flask import Flask, request, send_file
 from flask_cors import CORS
-import random
 
 import os
-import json
 
 from sudoku_api.database import PuzzleDB
 from sudoku_api.sudoku_game import OptimizedSudokuGameGenerator
@@ -24,6 +22,89 @@ def health():
     return {"status": "ok", "service": "sudoku-api", "version": "2.0.0"}, 200
 
 
+@app.route("/api/docs")
+def api_docs():
+    """Documentación de la API"""
+    docs_path = os.path.join(os.path.dirname(__file__), "sudoku_api", "api_docs.html")
+    return send_file(docs_path)
+
+
+@app.route("/api/boards", methods=["GET"])
+def get_boards():
+    """Obtiene todos los tableros de Sudoku"""
+    try:
+        boards = puzzle_db.get_boards()
+        return {"success": True, "data": boards}, 200
+    except Exception as e:
+        return {"error": "Failed to retrieve boards", "message": str(e)}, 500
+
+
+@app.route("/api/daily", methods=["GET"])
+def get_daily_puzzle():
+    """Obtiene el puzzle del día según dificultad"""
+    try:
+        from datetime import date
+
+        difficulty = request.args.get("difficulty", "MEDIUM", type=str)
+        today = str(date.today())
+
+        # Buscar puzzle del día en BD
+        puzzle = puzzle_db.find_daily_puzzle(difficulty, today)
+
+        if not puzzle:
+            # Si no existe, asignar uno random
+            puzzle = puzzle_db.assign_daily_puzzle(difficulty, today)
+
+        if not puzzle:
+            return {
+                "error": "No puzzles available",
+                "message": f"No unassigned puzzles found for difficulty {difficulty}",
+            }, 404
+
+        return {
+            "success": True,
+            "data": {
+                "date": today,
+                "playable": {
+                    "grid": puzzle["playable_grid"],
+                    "is_valid": False,
+                },
+                "solution": {
+                    "grid": puzzle["solution_grid"],
+                    "is_valid": True,
+                },
+                "difficulty": {
+                    "level": puzzle["difficulty"],
+                    "coefficient": round(puzzle["coefficient"], 2),
+                },
+                "metadata": {
+                    "empty_cells": puzzle["empty_cells"],
+                    "is_daily": True,
+                    "date_assigned": today,
+                },
+            },
+        }, 200
+
+    except Exception as e:
+        return {"error": "Failed to get daily puzzle", "message": str(e)}, 500
+
+
+@app.route("/api/stats", methods=["GET"])
+def get_stats():
+    """Obtiene estadísticas de puzzles disponibles"""
+    try:
+        return {
+            "success": True,
+            "data": {
+                "total_puzzles": puzzle_db.count_all_puzzles(),
+                "by_difficulty": puzzle_db.get_boards()["boards"],
+                "daily_assigned": puzzle_db.count_daily_assigned(),
+            },
+        }, 200
+    except Exception as e:
+        return {"error": "Failed to get stats", "message": str(e)}, 500
+
+
 @app.route("/api/game", methods=["GET"])
 def generate_game():
     try:
@@ -32,16 +113,10 @@ def generate_game():
         if not 10 <= iterations <= 200:
             return {"error": "Invalid iterations parameter"}, 400
 
-        # Estimar dificultad y celdas vacías (tu lógica actual)
-        target_empty = int(iterations * 0.6)
-        estimated_difficulty = "MEDIUM"
-        if target_empty < 35:
-            estimated_difficulty = "EASY"
-        elif target_empty > 55:
-            estimated_difficulty = "HARD"
-
         # Buscar en BD primero (tu lógica actual)
-        cached_puzzle = puzzle_db.find_puzzle(estimated_difficulty, target_empty)
+        cached_puzzle = puzzle_db.find_puzzle(
+            request.args.get("difficulty", "MEDIUM", type=str)
+        )
 
         if cached_puzzle:
             # Respuesta desde BD - JSON inmediato
@@ -98,121 +173,9 @@ def generate_game():
                     },
                 },
             }, 200
-        else:
-            # Generación compleja - SSE con progreso
-            return generate_complex_with_sse(iterations)
 
     except Exception as e:
         return {"error": "Failed to generate game", "message": str(e)}, 500
-
-
-def generate_complex_with_sse(iterations):
-    """Genera puzzle complejo con progreso SSE"""
-
-    def generate():
-        try:
-            # Lista para almacenar mensajes de progreso
-            progress_messages = []
-
-            def progress_callback(progress, message):
-                progress_data = {
-                    "progress": progress,
-                    "status": "processing" if progress < 100 else "completed",
-                    "message": message,
-                }
-                progress_messages.append(f"data: {json.dumps(progress_data)}\n\n")
-
-            # Generar usando tu generador optimizado
-            game = OptimizedSudokuGameGenerator.generate_puzzle(
-                iterations, progress_callback
-            )
-
-            # Enviar todos los mensajes de progreso acumulados
-            for msg in progress_messages[:-1]:  # Todos menos el último
-                yield msg
-
-            # Guardar en BD
-            puzzle_db.save_puzzle(game)
-
-            # Mensaje final con el juego completo
-            yield f"data: {json.dumps({
-                'progress': 100,
-                'status': 'completed',
-                'message': 'Juego generado exitosamente',
-                'data': {
-                    'playable': {
-                        'grid': game.playable.grid,
-                        'is_valid': game.playable.is_valid,
-                    },
-                    'solution': {
-                        'grid': game.solution.grid,
-                        'is_valid': game.solution.is_valid,
-                    },
-                    'difficulty': {
-                        'level': game.difficult_level.name,
-                        'coefficient': round(game.difficult_coefficient, 2),
-                    },
-                    'metadata': {
-                        'iterations_used': iterations,
-                        'empty_cells': len(game.playable.get_empty_cells()),
-                        'cached': False,
-                    },
-                }
-            })}\n\n"
-
-        except Exception as e:
-            yield f"data: {json.dumps({
-                'progress': 0,
-                'status': 'error',
-                'message': f'Error: {str(e)}'
-            })}\n\n"
-
-    return Response(
-        generate(),
-        mimetype="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "Access-Control-Allow-Origin": "*",
-        },
-    )
-
-
-def generate_complex_with_progress(iterations):
-    """SSE para generaciones complejas"""
-
-    def generate():
-        try:
-            # Progreso inicial
-            yield f"data: {json.dumps({'progress': 0, 'status': 'initializing', 'message': 'Creando tablero base...'})}\n\n"
-
-            # Generar con reportes de progreso
-            game = generate_with_progress_reports(iterations, generate)
-
-            # Guardar en BD
-            puzzle_db.save_puzzle(game)
-
-            # Resultado final
-            yield f"data: {json.dumps({
-                'progress': 100,
-                'status': 'completed',
-                'message': 'Juego generado exitosamente',
-                'data': {
-                    'playable': {'grid': game.playable.grid, 'is_valid': game.playable.is_valid},
-                    'solution': {'grid': game.solution.grid, 'is_valid': game.solution.is_valid},
-                    'difficulty': {'level': game.difficult_level.name, 'coefficient': round(game.difficult_coefficient, 2)},
-                    'metadata': {'iterations_used': iterations, 'empty_cells': len(game.playable.get_empty_cells()), 'cached': False}
-                }
-            })}\n\n"
-
-        except Exception as e:
-            yield f"data: {json.dumps({'progress': 0, 'status': 'error', 'message': f'Error: {str(e)}'})}\n\n"
-
-    return Response(
-        generate(),
-        mimetype="text/event-stream",
-        headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
-    )
 
 
 @app.route("/api/validate", methods=["POST"])
@@ -342,6 +305,9 @@ def not_found(error):
         "message": "The requested endpoint does not exist",
         "available_endpoints": [
             "GET /",
+            "GET /api/boards",
+            "GET /api/daily",
+            "GET /api/stats",
             "GET /api/game",
             "POST /api/validate",
             "POST /api/solve",
@@ -363,78 +329,6 @@ def internal_server_error(error):
         "error": "Internal server error",
         "message": "An unexpected error occurred",
     }, 500
-
-
-def generate_with_progress_reports(iterations, generator_func):
-    """Genera puzzle reportando progreso cada cierto número de iteraciones"""
-    from sudoku_api.sudoku_game_optimazed import OptimizedSudokuGameGenerator
-
-    # Crear tablero base
-    solution = SudokuBoard()
-    solution.build()
-
-    generator_func(
-        f"data: {json.dumps({'progress': 10, 'status': 'processing', 'message': 'Tablero base creado'})}\n\n"
-    )
-
-    playable = solution.clone()
-    difficult_coefficient = 1
-    successful_removals = 0
-
-    # Reportar progreso cada 10 iteraciones o 10%
-    report_interval = max(10, iterations // 10)
-
-    for i in range(iterations):
-        new_playable = playable.clone()
-
-        # Encontrar celda no vacía
-        row_num, column_num = random.randrange(9), random.randrange(9)
-        while new_playable.is_cell_empty(row_num, column_num):
-            row_num, column_num = random.randrange(9), random.randrange(9)
-        new_playable.clear_cell(row_num, column_num)
-
-        # Validar solución
-        solver = SudokuSolver(new_playable)
-        try:
-            solver.solve()
-            playable = new_playable
-            difficult_coefficient = solver.difficult_coefficient
-            successful_removals += 1
-        except:
-            continue
-
-        # Reportar progreso
-        if i % report_interval == 0 or i == iterations - 1:
-            progress = int(10 + (i / iterations) * 85)  # 10% a 95%
-            generator_func(
-                f"data: {json.dumps({
-                'progress': progress, 
-                'status': 'processing', 
-                'message': f'Eliminando celdas: {successful_removals} de {iterations} intentadas'
-            })}\n\n"
-            )
-
-    generator_func(
-        f"data: {json.dumps({'progress': 95, 'status': 'processing', 'message': 'Calculando dificultad final...'})}\n\n"
-    )
-
-    # Calcular nivel de dificultad (tu código actual)
-    from sudoku_api.sudoku_game import DifficultLevel, SudokuGame
-
-    if difficult_coefficient < DifficultLevel.VERY_EASY.value:
-        difficult_level = DifficultLevel.VERY_EASY
-    elif difficult_coefficient < DifficultLevel.EASY.value:
-        difficult_level = DifficultLevel.EASY
-    elif difficult_coefficient < DifficultLevel.MEDIUM.value:
-        difficult_level = DifficultLevel.MEDIUM
-    elif difficult_coefficient < DifficultLevel.HARD.value:
-        difficult_level = DifficultLevel.HARD
-    elif difficult_coefficient < DifficultLevel.VERY_HARD.value:
-        difficult_level = DifficultLevel.VERY_HARD
-    else:
-        difficult_level = DifficultLevel.MASTER
-
-    return SudokuGame(playable, solution, difficult_level, difficult_coefficient)
 
 
 if __name__ == "__main__":

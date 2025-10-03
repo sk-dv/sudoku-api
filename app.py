@@ -24,6 +24,12 @@ def get_db():
 app.config["JSON_SORT_KEYS"] = False
 app.config["RESTX_MASK_SWAGGER"] = False
 
+# Health check endpoint (antes de inicializar API)
+@app.route("/")
+def health():
+    """Health check endpoint"""
+    return {"status": "ok", "service": "sudoku-api", "version": "2.0.0"}, 200
+
 # Inicializar Swagger
 api = Api(
     app,
@@ -31,10 +37,11 @@ api = Api(
     title="Sudoku Champions API",
     description="API para generar, validar y resolver puzzles de Sudoku con diferentes niveles de dificultad",
     doc="/api/docs",
+    prefix="/api"
 )
 
 # Namespaces
-ns_puzzles = api.namespace("api", description="Puzzle operations")
+ns_puzzles = api.namespace("", description="Puzzle operations")
 
 # Modelos para documentación
 grid_model = api.model(
@@ -89,10 +96,11 @@ game_response_model = api.model(
 )
 
 
-@app.route("/")
-def health():
-    """Health check endpoint"""
-    return {"status": "ok", "service": "sudoku-api", "version": "2.0.0"}, 200
+@ns_puzzles.route("/health")
+class Health(Resource):
+    def get(self):
+        """Health check endpoint"""
+        return {"status": "ok", "service": "sudoku-api", "version": "2.0.0"}, 200
 
 
 @ns_puzzles.route("/boards")

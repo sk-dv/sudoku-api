@@ -8,10 +8,17 @@ from sudoku_api.database import PuzzleDB
 from sudoku_api.sudoku_game import OptimizedSudokuGameGenerator
 from sudoku_api.validator import Validator
 
-puzzle_db = PuzzleDB()
-
 app = Flask(__name__)
 CORS(app)
+
+# Lazy initialization - only create DB connection when needed
+puzzle_db = None
+
+def get_db():
+    global puzzle_db
+    if puzzle_db is None:
+        puzzle_db = PuzzleDB()
+    return puzzle_db
 
 # Configuración
 app.config["JSON_SORT_KEYS"] = False
@@ -93,7 +100,8 @@ class Boards(Resource):
     def get(self):
         """Obtiene resumen de tableros disponibles por dificultad"""
         try:
-            boards = puzzle_db.get_boards()
+            db = get_db()
+            boards = db.get_boards()
             return {"success": True, "data": boards}, 200
         except Exception as e:
             return {"error": "Failed to retrieve boards", "message": str(e)}, 500
@@ -119,10 +127,11 @@ class DailyPuzzle(Resource):
             difficulty = request.args.get("difficulty", "MEDIUM", type=str)
             today = str(date.today())
 
-            puzzle = puzzle_db.find_daily_puzzle(difficulty, today)
+            db = get_db()
+            puzzle = db.find_daily_puzzle(difficulty, today)
 
             if not puzzle:
-                puzzle = puzzle_db.assign_daily_puzzle(difficulty, today)
+                puzzle = db.assign_daily_puzzle(difficulty, today)
 
             if not puzzle:
                 return {
@@ -163,12 +172,13 @@ class Stats(Resource):
     def get(self):
         """Obtiene estadísticas de puzzles disponibles"""
         try:
+            db = get_db()
             return {
                 "success": True,
                 "data": {
-                    "total_puzzles": puzzle_db.count_all_puzzles(),
-                    "by_difficulty": puzzle_db.get_boards()["boards"],
-                    "daily_assigned": puzzle_db.count_daily_assigned(),
+                    "total_puzzles": db.count_all_puzzles(),
+                    "by_difficulty": db.get_boards()["boards"],
+                    "daily_assigned": db.count_daily_assigned(),
                 },
             }, 200
         except Exception as e:
@@ -200,7 +210,8 @@ class Game(Resource):
             if not 10 <= iterations <= 200:
                 return {"error": "Invalid iterations parameter"}, 400
 
-            cached_puzzle = puzzle_db.find_puzzle(
+            db = get_db()
+            cached_puzzle = db.find_puzzle(
                 request.args.get("difficulty", "MEDIUM", type=str)
             )
 
@@ -232,7 +243,7 @@ class Game(Resource):
 
             if not is_complex:
                 game = OptimizedSudokuGameGenerator.generate_puzzle(iterations)
-                puzzle_db.save_puzzle(game)
+                db.save_puzzle(game)
 
                 return {
                     "success": True,

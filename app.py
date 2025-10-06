@@ -14,21 +14,25 @@ CORS(app)
 # Lazy initialization - only create DB connection when needed
 puzzle_db = None
 
+
 def get_db():
     global puzzle_db
     if puzzle_db is None:
         puzzle_db = PuzzleDB()
     return puzzle_db
 
+
 # Configuración
 app.config["JSON_SORT_KEYS"] = False
 app.config["RESTX_MASK_SWAGGER"] = False
+
 
 # Health check endpoint (antes de inicializar API)
 @app.route("/")
 def health():
     """Health check endpoint"""
     return {"status": "ok", "service": "sudoku-api", "version": "2.0.0"}, 200
+
 
 # Inicializar Swagger
 api = Api(
@@ -37,7 +41,7 @@ api = Api(
     title="Sudoku Champions API",
     description="API para generar, validar y resolver puzzles de Sudoku con diferentes niveles de dificultad",
     doc="/api/docs",
-    prefix="/api"
+    prefix="/api",
 )
 
 # Namespaces
@@ -54,13 +58,9 @@ grid_model = api.model(
     },
 )
 
-playable_model = api.model(
-    "Playable", {"grid": fields.Raw, "is_valid": fields.Boolean}
-)
+playable_model = api.model("Playable", {"grid": fields.Raw, "is_valid": fields.Boolean})
 
-solution_model = api.model(
-    "Solution", {"grid": fields.Raw, "is_valid": fields.Boolean}
-)
+solution_model = api.model("Solution", {"grid": fields.Raw, "is_valid": fields.Boolean})
 
 difficulty_model = api.model(
     "Difficulty", {"level": fields.String, "coefficient": fields.Float}
@@ -101,18 +101,6 @@ class Health(Resource):
     def get(self):
         """Health check endpoint"""
         return {"status": "ok", "service": "sudoku-api", "version": "2.0.0"}, 200
-
-
-@ns_puzzles.route("/boards")
-class Boards(Resource):
-    def get(self):
-        """Obtiene resumen de tableros disponibles por dificultad"""
-        try:
-            db = get_db()
-            boards = db.get_boards()
-            return {"success": True, "data": boards}, 200
-        except Exception as e:
-            return {"error": "Failed to retrieve boards", "message": str(e)}, 500
 
 
 @ns_puzzles.route("/daily")

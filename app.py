@@ -1,381 +1,65 @@
-from flask import Flask, request
-from flask_cors import CORS
-from flask_restx import Api, Resource, fields
+"""
+Sudoku Champions API - Main Application Entry Point
 
+Aplicación Flask para generar, validar y resolver puzzles de Sudoku
+con diferentes niveles de dificultad.
+"""
+
+from flask import Flask
+from flask_cors import CORS
+from flask_restx import Api
 import os
 
-from sudoku_api.database import PuzzleDB
-from sudoku_api.sudoku_game import OptimizedSudokuGameGenerator
-from sudoku_api.validator import Validator
-
-app = Flask(__name__)
-CORS(app)
-
-# Lazy initialization - only create DB connection when needed
-puzzle_db = None
+from sudoku_api.config import Config
+from sudoku_api.api_models import create_models
+from sudoku_api.routes import register_routes
 
 
-def get_db():
-    global puzzle_db
-    if puzzle_db is None:
-        puzzle_db = PuzzleDB()
-    return puzzle_db
-
-
-# Configuración
-app.config["JSON_SORT_KEYS"] = False
-app.config["RESTX_MASK_SWAGGER"] = False
-
-
-# Health check endpoint (antes de inicializar API)
-@app.route("/")
-def health():
-    """Health check endpoint"""
-    return {"status": "ok", "service": "sudoku-api", "version": "2.0.0"}, 200
-
-
-# Inicializar Swagger
-api = Api(
-    app,
-    version="2.0.0",
-    title="Sudoku Champions API",
-    description="API para generar, validar y resolver puzzles de Sudoku con diferentes niveles de dificultad",
-    doc="/api/docs",
-    prefix="/api",
-)
-
-# Namespaces
-ns_puzzles = api.namespace("", description="Puzzle operations")
-
-# Modelos para documentación
-grid_model = api.model(
-    "Grid",
-    {
-        "grid": fields.List(
-            fields.List(fields.Integer, description="Row of 9 integers (0-9)"),
-            description="9x9 Sudoku grid (0 = empty cell)",
-        )
-    },
-)
-
-playable_model = api.model("Playable", {"grid": fields.Raw, "is_valid": fields.Boolean})
-
-solution_model = api.model("Solution", {"grid": fields.Raw, "is_valid": fields.Boolean})
-
-difficulty_model = api.model(
-    "Difficulty", {"level": fields.String, "coefficient": fields.Float}
-)
-
-metadata_model = api.model(
-    "Metadata",
-    {
-        "iterations_used": fields.Integer,
-        "empty_cells": fields.Integer,
-        "cached": fields.Boolean,
-        "is_daily": fields.Boolean(required=False),
-        "date_assigned": fields.String(required=False),
-    },
-)
-
-game_response_model = api.model(
-    "GameResponse",
-    {
-        "success": fields.Boolean,
-        "data": fields.Nested(
-            api.model(
-                "GameData",
-                {
-                    "playable": fields.Nested(playable_model),
-                    "solution": fields.Nested(solution_model),
-                    "difficulty": fields.Nested(difficulty_model),
-                    "metadata": fields.Nested(metadata_model),
-                },
-            )
-        ),
-    },
-)
-
-
-@ns_puzzles.route("/health")
-class Health(Resource):
-    def get(self):
+def create_app():
+    """Factory para crear y configurar la aplicación Flask"""
+    
+    # Crear instancia de Flask
+    app = Flask(__name__)
+    
+    # Aplicar configuración
+    for key, value in Config.__dict__.items():
+        if not key.startswith('_'):
+            app.config[key] = value
+    
+    # Habilitar CORS
+    CORS(app)
+    
+    # Health check endpoint básico
+    @app.route("/")
+    def health():
         """Health check endpoint"""
-        return {"status": "ok", "service": "sudoku-api", "version": "2.0.0"}, 200
-
-
-@ns_puzzles.route("/daily")
-class DailyPuzzle(Resource):
-    @api.doc(
-        params={
-            "difficulty": {
-                "description": "Nivel de dificultad",
-                "enum": ["EASY", "MEDIUM", "HARD", "EXPERT", "MASTER"],
-                "default": "MEDIUM",
-            }
-        }
+        return {
+            "status": "ok", 
+            "service": "sudoku-api", 
+            "version": "2.0.0"
+        }, 200
+    
+    # Inicializar API Swagger
+    api = Api(
+        app,
+        version="2.0.0",
+        title="Sudoku Champions API",
+        description="API para generar, validar y resolver puzzles de Sudoku con diferentes niveles de dificultad",
+        doc="/api/docs",
+        prefix="/api",
     )
-    @api.response(200, "Success", game_response_model)
-    def get(self):
-        """Obtiene el puzzle del día según dificultad (un puzzle único por día)"""
-        try:
-            from datetime import date
-
-            difficulty = request.args.get("difficulty", "MEDIUM", type=str)
-            today = str(date.today())
-
-            db = get_db()
-            puzzle = db.find_daily_puzzle(difficulty, today)
-
-            if not puzzle:
-                puzzle = db.assign_daily_puzzle(difficulty, today)
-
-            if not puzzle:
-                return {
-                    "error": "No puzzles available",
-                    "message": f"No unassigned puzzles found for difficulty {difficulty}",
-                }, 404
-
-            return {
-                "success": True,
-                "data": {
-                    "date": today,
-                    "playable": {
-                        "grid": puzzle["playable_grid"],
-                        "is_valid": False,
-                    },
-                    "solution": {
-                        "grid": puzzle["solution_grid"],
-                        "is_valid": True,
-                    },
-                    "difficulty": {
-                        "level": puzzle["difficulty"],
-                        "coefficient": round(puzzle["coefficient"], 2),
-                    },
-                    "metadata": {
-                        "empty_cells": puzzle["empty_cells"],
-                        "is_daily": True,
-                        "date_assigned": today,
-                    },
-                },
-            }, 200
-
-        except Exception as e:
-            return {"error": "Failed to get daily puzzle", "message": str(e)}, 500
+    
+    # Crear modelos de API
+    models = create_models(api)
+    
+    # Registrar rutas
+    register_routes(api, models)
+    
+    return app
 
 
-@ns_puzzles.route("/stats")
-class Stats(Resource):
-    def get(self):
-        """Obtiene estadísticas de puzzles disponibles"""
-        try:
-            db = get_db()
-            return {
-                "success": True,
-                "data": {
-                    "total_puzzles": db.count_all_puzzles(),
-                    "by_difficulty": db.get_boards()["boards"],
-                    "daily_assigned": db.count_daily_assigned(),
-                },
-            }, 200
-        except Exception as e:
-            return {"error": "Failed to get stats", "message": str(e)}, 500
-
-
-@ns_puzzles.route("/game")
-class Game(Resource):
-    @api.doc(
-        params={
-            "iterations": {
-                "description": "Número de iteraciones (10-200). Más iteraciones = más difícil",
-                "type": "int",
-                "default": 70,
-            },
-            "difficulty": {
-                "description": "Nivel de dificultad",
-                "enum": ["EASY", "MEDIUM", "HARD", "EXPERT", "MASTER"],
-                "default": "MEDIUM",
-            },
-        }
-    )
-    @api.response(200, "Success", game_response_model)
-    def get(self):
-        """Genera un nuevo puzzle de Sudoku (usa caché si existe)"""
-        try:
-            iterations = request.args.get("iterations", 70, type=int)
-
-            if not 10 <= iterations <= 200:
-                return {"error": "Invalid iterations parameter"}, 400
-
-            db = get_db()
-            cached_puzzle = db.find_puzzle(
-                request.args.get("difficulty", "MEDIUM", type=str)
-            )
-
-            if cached_puzzle:
-                return {
-                    "success": True,
-                    "data": {
-                        "playable": {
-                            "grid": cached_puzzle["playable_grid"],
-                            "is_valid": False,
-                        },
-                        "solution": {
-                            "grid": cached_puzzle["solution_grid"],
-                            "is_valid": True,
-                        },
-                        "difficulty": {
-                            "level": cached_puzzle["difficulty"],
-                            "coefficient": round(cached_puzzle["coefficient"], 2),
-                        },
-                        "metadata": {
-                            "iterations_used": iterations,
-                            "empty_cells": cached_puzzle["empty_cells"],
-                            "cached": True,
-                        },
-                    },
-                }, 200
-
-            is_complex = iterations > 80
-
-            if not is_complex:
-                game = OptimizedSudokuGameGenerator.generate_puzzle(iterations)
-                db.save_puzzle(game)
-
-                return {
-                    "success": True,
-                    "data": {
-                        "playable": {
-                            "grid": game.playable.grid,
-                            "is_valid": game.playable.is_valid,
-                        },
-                        "solution": {
-                            "grid": game.solution.grid,
-                            "is_valid": game.solution.is_valid,
-                        },
-                        "difficulty": {
-                            "level": game.difficult_level.name,
-                            "coefficient": round(game.difficult_coefficient, 2),
-                        },
-                        "metadata": {
-                            "iterations_used": iterations,
-                            "empty_cells": len(game.playable.get_empty_cells()),
-                            "cached": False,
-                        },
-                    },
-                }, 200
-
-        except Exception as e:
-            return {"error": "Failed to generate game", "message": str(e)}, 500
-
-
-@ns_puzzles.route("/validate")
-class Validate(Resource):
-    @api.expect(grid_model)
-    def post(self):
-        """Valida un tablero de Sudoku (verifica reglas sin resolver)"""
-        try:
-            data = request.get_json()
-
-            if not data:
-                return {
-                    "error": "Invalid JSON",
-                    "message": "Request body must be valid JSON",
-                }, 400
-
-            if "grid" not in data:
-                return {
-                    "error": "Missing grid parameter",
-                    "message": "grid field is required in request body",
-                }, 400
-
-            grid = data["grid"]
-
-            if not isinstance(grid, list) or len(grid) != 9:
-                return {
-                    "error": "Invalid grid format",
-                    "message": "grid must be a 9x9 matrix",
-                }, 400
-
-            for i, row in enumerate(grid):
-                if not isinstance(row, list) or len(row) != 9:
-                    return {
-                        "error": "Invalid grid format",
-                        "message": f"Row {i} must have exactly 9 elements",
-                    }, 400
-
-                for j, cell in enumerate(row):
-                    if not isinstance(cell, int) or not 0 <= cell <= 9:
-                        return {
-                            "error": "Invalid cell value",
-                            "message": f"Cell at [{i}][{j}] must be an integer between 0-9",
-                        }, 400
-
-            validator = Validator(grid)
-
-            return {
-                "success": True,
-                "data": {
-                    "is_valid": validator.is_valid,
-                    "grid": grid,
-                    "validation_details": {
-                        "total_cells": 81,
-                        "filled_cells": sum(
-                            1 for row in grid for cell in row if cell != 0
-                        ),
-                        "empty_cells": sum(
-                            1 for row in grid for cell in row if cell == 0
-                        ),
-                    },
-                },
-            }, 200
-
-        except Exception as e:
-            return {"error": "Validation failed", "message": str(e)}, 500
-
-
-@ns_puzzles.route("/solve")
-class Solve(Resource):
-    @api.expect(grid_model)
-    def post(self):
-        """Resuelve un tablero de Sudoku parcialmente completado"""
-        try:
-            data = request.get_json()
-
-            if not data or "grid" not in data:
-                return {
-                    "error": "Invalid request",
-                    "message": "grid field is required",
-                }, 400
-
-            from sudoku_api.sudoku_board import SudokuBoard
-            from sudoku_game import OptimizedSudokuSolver
-
-            board = SudokuBoard(data["grid"])
-
-            if board.is_valid and len(board.get_empty_cells()) == 0:
-                return {
-                    "success": True,
-                    "data": {
-                        "solved_grid": board.grid,
-                        "message": "Sudoku was already solved",
-                    },
-                }, 200
-
-            solver = OptimizedSudokuSolver(board)
-            solution = solver.solve()
-
-            return {
-                "success": True,
-                "data": {
-                    "original_grid": data["grid"],
-                    "solved_grid": solution.grid,
-                    "difficulty_coefficient": round(solver.difficult_coefficient, 2),
-                    "steps_taken": "Solved successfully",
-                },
-            }, 200
-
-        except Exception as e:
-            return {"error": "Failed to solve", "message": str(e)}, 500
+# Crear la aplicación
+app = create_app()
 
 
 if __name__ == "__main__":

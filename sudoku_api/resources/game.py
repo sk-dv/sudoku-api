@@ -7,7 +7,7 @@ class GameResource(Resource):
     def get(self):
         try:
             db = get_db()
-            difficulty = request.args.get("difficulty", "MEDIUM", type=str)
+            difficulty = request.args.get("difficulty", "EASY", type=str)
             cached_puzzle = db.find_puzzle(difficulty)
             empty_cells = self._get_empty_cells(cached_puzzle["playable_grid"])
             hints = [[r, c] for r, c in empty_cells]

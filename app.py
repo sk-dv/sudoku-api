@@ -29,6 +29,12 @@ def create_app():
     # Habilitar CORS
     CORS(app)
 
+    # Health check endpoint básico - DEBE ir antes de Flask-RESTX
+    @app.route("/")
+    def health():
+        """Health check endpoint"""
+        return {"status": "ok", "service": "sudoku-api", "version": "2.0.0"}, 200
+
     # Inicializar API Swagger
     api = Api(
         app,
@@ -45,12 +51,6 @@ def create_app():
     # Registrar rutas
     register_routes(api, models)
 
-    # Health check endpoint básico
-    @app.route("/")
-    def health():
-        """Health check endpoint"""
-        return {"status": "ok", "service": "sudoku-api", "version": "2.0.0"}, 200
-    
     return app
 
 

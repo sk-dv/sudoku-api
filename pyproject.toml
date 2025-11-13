@@ -2,7 +2,7 @@
 name = "sudoku-api"
 version = "1.0.0"
 description = "API REST para generar y validar juegos de Sudoku"
-authors = ["Your Name <your.email@example.com>"]
+authors = ["skdv <pipe.osrn@gmail.com>"]
 readme = "README.md"
 packages = [{include = "sudoku_api"}]
 

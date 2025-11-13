@@ -3,6 +3,7 @@ from sudoku_api.resources.stats import StatsResource
 from sudoku_api.resources.game import GameResource
 from sudoku_api.resources.validate import ValidateResource
 from sudoku_api.resources.solve import SolveResource
+from sudoku_api.resources.health import HealthResource
 
 
 def register_routes(api, models):
@@ -15,6 +16,7 @@ def register_routes(api, models):
     ValidateResource.post = ns.expect(models["grid"])(ValidateResource.post)
     SolveResource.post = ns.expect(models["grid"])(SolveResource.post)
 
+    ns.add_resource(HealthResource, "/health")
     ns.add_resource(DailyPuzzleResource, "/daily")
     ns.add_resource(StatsResource, "/stats")
     ns.add_resource(GameResource, "/game")

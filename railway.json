@@ -4,7 +4,7 @@
   },
   "deploy": {
     "startCommand": "gunicorn app:app --worker-class gevent --workers 1 --bind 0.0.0.0:$PORT --timeout 120",
-    "healthcheckPath": "/",
+    "healthcheckPath": "/api/health",
     "healthcheckTimeout": 500,
     "restartPolicyType": "ON_FAILURE"
   },

@@ -7,13 +7,12 @@ class StatsResource(Resource):
         try:
             db = get_db()
             boards_data = db.get_boards()
-            
+
             return {
                 "success": True,
                 "data": {
                     "total_puzzles": db.count_all_puzzles(),
-                    "counts_by_difficulty": boards_data.get("counts_by_difficulty", {}),
-                    "daily_assigned": db.count_daily_assigned(),
+                    "boards": boards_data.get("boards", {}),
                 },
             }, 200
         except Exception as e:

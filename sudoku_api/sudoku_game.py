@@ -1,16 +1,7 @@
 import random
-import enum
 from sudoku_api.sudoku_board import SudokuBoard
 from sudoku_api.sudoku_solver import OptimizedSudokuSolver
-
-
-class DifficultLevel(enum.Enum):
-    VERY_EASY = 2
-    EASY = 3
-    MEDIUM = 5
-    HARD = 7
-    VERY_HARD = 10
-    MASTER = 100
+from sudoku_api.enums import DifficultLevel
 
 
 class SudokuGame:
@@ -92,28 +83,9 @@ class OptimizedSudokuGameGenerator:
         except:
             difficult_coefficient = 5.0
 
-        # Determinar nivel (tu lógica actual)
-        difficult_level = OptimizedSudokuGameGenerator._calculate_difficulty_level(
-            difficult_coefficient
-        )
+        difficult_level = DifficultLevel.from_coefficient(difficult_coefficient)
 
         if progress_callback:
             progress_callback(100, "Generación completada")
 
         return SudokuGame(playable, solution, difficult_level, difficult_coefficient)
-
-    @staticmethod
-    def _calculate_difficulty_level(coefficient: float) -> DifficultLevel:
-        """Umbrales simplificados"""
-        if coefficient < 3.0:
-            return DifficultLevel.VERY_EASY
-        elif coefficient < 4.5:
-            return DifficultLevel.EASY
-        elif coefficient < 6.0:
-            return DifficultLevel.MEDIUM
-        elif coefficient < 7.5:
-            return DifficultLevel.HARD
-        elif coefficient < 8.5:
-            return DifficultLevel.VERY_HARD
-        else:
-            return DifficultLevel.MASTER

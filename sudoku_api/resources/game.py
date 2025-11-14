@@ -1,14 +1,25 @@
 from flask_restx import Resource
 from flask import request
 from sudoku_api.resources import get_db
+from sudoku_api.enums import DifficultLevel
 
 
 class GameResource(Resource):
     def get(self):
         try:
             db = get_db()
-            difficulty = request.args.get("difficulty", "EASY", type=str)
-            cached_puzzle = db.find_puzzle(difficulty)
+            difficulty_input = request.args.get("difficulty", None, type=str)
+
+            # Validar y parsear el nivel de dificultad
+            try:
+                if difficulty_input is None:
+                    difficulty_level = DifficultLevel.get_default()
+                else:
+                    difficulty_level = DifficultLevel.from_string(difficulty_input)
+            except ValueError as ve:
+                return {"error": "Invalid difficulty level", "message": str(ve)}, 400
+
+            cached_puzzle = db.find_puzzle(difficulty_level.name)
             empty_cells = self._get_empty_cells(cached_puzzle["playable_grid"])
             hints = [[r, c] for r, c in empty_cells]
 

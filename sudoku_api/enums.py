@@ -30,15 +30,15 @@ class DifficultyLevel(enum.Enum):
         normalized = value.strip()
 
         match normalized:
-            case "":
+            case "EASY":
                 return cls.EASY
-            case "":
+            case "MEDIUM":
                 return cls.MEDIUM
-            case "":
+            case "HARD":
                 return cls.HARD
-            case "":
+            case "EXPERT":
                 return cls.EXPERT
-            case "":
+            case "MASTER":
                 return cls.MASTER
             case _:
                 raise ValueError(f"Nivel inválido: '{value}'")

@@ -1,7 +1,7 @@
 import random
 from sudoku_api.sudoku_board import SudokuBoard
 from sudoku_api.sudoku_solver import OptimizedSudokuSolver
-from sudoku_api.enums import DifficultLevel
+from sudoku_api.enums import DifficultyLevel
 
 
 class SudokuGame:
@@ -9,7 +9,7 @@ class SudokuGame:
         self,
         playable: SudokuBoard,
         solution: SudokuBoard,
-        difficult_level: DifficultLevel,
+        difficult_level: DifficultyLevel,
         difficult_coefficient: float,
     ):
         self.playable = playable
@@ -83,7 +83,7 @@ class OptimizedSudokuGameGenerator:
         except:
             difficult_coefficient = 5.0
 
-        difficult_level = DifficultLevel.from_coefficient(difficult_coefficient)
+        difficult_level = DifficultyLevel.from_coefficient(difficult_coefficient)
 
         if progress_callback:
             progress_callback(100, "Generación completada")

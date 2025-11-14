@@ -15,7 +15,6 @@ class PuzzleDB:
         """Buscar puzzle similar en BD"""
         with self.get_connection() as conn:
             with conn.cursor() as cur:
-                # Buscar con rango ±5 celdas
                 cur.execute(
                     """
                     SELECT * FROM puzzles 
@@ -32,7 +31,6 @@ class PuzzleDB:
         """Obtiene todos los tableros de Sudoku y un mapa de cuántos hay por dificultad"""
         with self.get_connection() as conn:
             with conn.cursor() as cur:
-                # Obtener el conteo por dificultad
                 cur.execute("SELECT difficulty, COUNT(*) as count FROM puzzles GROUP BY difficulty")
                 counts = {row['difficulty']: row['count'] for row in cur.fetchall()}
                 return {"boards": counts}

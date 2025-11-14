@@ -1,7 +1,7 @@
 import enum
 
 
-class DifficultLevel(enum.Enum):
+class DifficultyLevel(enum.Enum):
     EASY = 1
     MEDIUM = 2
     HARD = 3
@@ -9,45 +9,42 @@ class DifficultLevel(enum.Enum):
     MASTER = 5
 
     @property
-    def display_name_es(self) -> str:
-        return {
-            self.EASY: "Fácil",
-            self.MEDIUM: "Medio",
-            self.HARD: "Difícil",
-            self.EXPERT: "Experto",
-            self.MASTER: "Maestro",
-        }[self]
+    def name(self) -> str:
+        match self:
+            case DifficultyLevel.EASY:
+                return "VERY_EASY"
+            case DifficultyLevel.MEDIUM:
+                return "EASY"
+            case DifficultyLevel.HARD:
+                return "HARD"
+            case DifficultyLevel.EXPERT:
+                return "VERY_HARD"
+            case DifficultyLevel.MASTER:
+                return "MASTER"
 
     @classmethod
-    def from_string(cls, value: str) -> 'DifficultLevel':
+    def from_string(cls, value: str) -> 'DifficultyLevel':
         if not value:
             raise ValueError("El nivel de dificultad no puede estar vacío")
 
-        normalized = value.upper().strip()
+        normalized = value.strip()
 
-        try:
-            return cls[normalized]
-        except KeyError:
-            pass
-
-        spanish_map = {
-            "FACIL": cls.EASY,
-            "FÁCIL": cls.EASY,
-            "MEDIO": cls.MEDIUM,
-            "DIFICIL": cls.HARD,
-            "DIFÍCIL": cls.HARD,
-            "EXPERTO": cls.EXPERT,
-            "MAESTRO": cls.MASTER,
-        }
-
-        if normalized in spanish_map:
-            return spanish_map[normalized]
-
-        valid = [l.name for l in cls] + list(spanish_map.keys())
-        raise ValueError(f"Nivel inválido: '{value}'. Válidos: {', '.join(valid)}")
+        match normalized:
+            case "":
+                return cls.EASY
+            case "":
+                return cls.MEDIUM
+            case "":
+                return cls.HARD
+            case "":
+                return cls.EXPERT
+            case "":
+                return cls.MASTER
+            case _:
+                raise ValueError(f"Nivel inválido: '{value}'")
 
     @classmethod
-    def from_coefficient(cls, coefficient: float) -> 'DifficultLevel':
+    def from_coefficient(cls, coefficient: float) -> 'DifficultyLevel':
         if coefficient < 3.5:
             return cls.EASY
         elif coefficient < 5.5:
@@ -60,7 +57,7 @@ class DifficultLevel(enum.Enum):
             return cls.MASTER
 
     @classmethod
-    def get_default(cls) -> 'DifficultLevel':
+    def get_default(cls) -> 'DifficultyLevel':
         return cls.MEDIUM
 
     def __str__(self) -> str:

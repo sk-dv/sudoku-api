@@ -26,8 +26,9 @@ def create_app():
         if not key.startswith('_'):
             app.config[key] = value
     
-    # Habilitar CORS
-    CORS(app)
+    # Habilitar CORS (restringir orígenes en producción via CORS_ORIGINS)
+    origins = os.environ.get("CORS_ORIGINS", "*").split(",")
+    CORS(app, origins=origins)
 
     # Inicializar API Swagger
     api = Api(

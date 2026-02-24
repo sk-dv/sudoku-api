@@ -5,6 +5,7 @@
 ## [Unreleased]
 
 ### Security
+- CORS restringido vía variable de entorno `CORS_ORIGINS` (CSV). Sin la variable, cae en `*` para desarrollo. En producción: `CORS_ORIGINS=https://tu-dominio.com`.
 - Flask actualizado a `^3.1.0` para parchear GHSA-4grg-w6v8-c28g: el header `Vary: Cookie` no se establecía al acceder al session con el operador `in`, lo que podía llevar a que proxies cachearan respuestas con datos de sesión de usuarios autenticados.
 - Werkzeug actualizado a `^3.1.6` para parchear dos vulnerabilidades en `safe_join` (GHSA-hgf8-39gv-g3f2 y su bypass): nombres de dispositivo Windows (`CON`, `AUX`, etc.) con extensiones compuestas o espacios al final podían colgar la lectura indefinidamente en `send_from_directory`.
 

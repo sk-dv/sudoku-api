@@ -9,7 +9,7 @@ class DifficultyLevel(enum.Enum):
     MASTER = 5
 
     @property
-    def name(self) -> str:
+    def db_name(self) -> str:
         match self:
             case DifficultyLevel.EASY:
                 return "VERY_EASY"

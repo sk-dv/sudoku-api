@@ -1,191 +1,114 @@
-# Sudoku API REST
+# Sudoku Champions API
 
-API REST para generar, validar y resolver tableros de Sudoku con diferentes niveles de dificultad. Incluye documentación interactiva con Swagger UI.
+API REST para generar, validar y resolver tableros de Sudoku con múltiples niveles de dificultad. Documentación interactiva con Swagger UI.
 
-## 🚀 Características
-
-- **Generación de juegos**: Crea tableros de Sudoku con dificultad personalizable
-- **Puzzle diario**: Sistema de puzzle del día por nivel de dificultad
-- **Validación**: Verifica si un tablero de Sudoku es válido
-- **Resolución**: Resuelve tableros parcialmente completados
-- **Múltiples niveles**: EASY, MEDIUM, HARD, EXPERT, MASTER
-- **Caché de puzzles**: Base de datos PostgreSQL con puzzles pre-generados
-- **Documentación Swagger**: Interfaz interactiva en `/api/docs`
-
-## 📋 Requisitos
+## Requisitos
 
 - Python 3.9+
-- PostgreSQL (para producción)
-- Poetry (recomendado para desarrollo)
+- PostgreSQL
+- Poetry
 
-## 🛠️ Instalación
-
-### Con Poetry (recomendado)
+## Instalación
 
 ```bash
-# Clonar repositorio
 git clone <tu-repo>
 cd sudoku-api
-
-# Instalar dependencias
 poetry install
-
-# Activar ambiente virtual
-poetry shell
-
-# Ejecutar servidor
 poetry run python app.py
 ```
 
-### Con pip
+El servidor inicia en `http://localhost:8000`. Swagger UI disponible en `/api/docs`.
 
-```bash
-# Instalar dependencias
-pip install -r requirements.txt
+## Endpoints
 
-# Ejecutar servidor
-python app.py
-```
+| Método | Ruta             | Descripción                              |
+| ------ | ---------------- | ---------------------------------------- |
+| GET    | `/api/health`    | Health check                             |
+| GET    | `/api/game`      | Obtener puzzle por dificultad            |
+| GET    | `/api/daily`     | Puzzle del día por dificultad            |
+| GET    | `/api/stats`     | Estadísticas de puzzles en BD            |
+| POST   | `/api/validate`  | Validar un tablero completo              |
+| POST   | `/api/solve`     | Resolver un tablero parcial              |
 
-## 📖 Documentación
+### GET `/api/game?difficulty=MEDIUM`
 
-Accede a la documentación interactiva Swagger UI en:
+Retorna un puzzle aleatorio de la BD según dificultad.
 
-```
-https://tu-app.railway.app/api/docs
-```
+**Parámetros:** `difficulty` (opcional): EASY | MEDIUM | HARD | EXPERT | MASTER. Default: MEDIUM.
 
-## 🔗 Endpoints Principales
-
-### 📊 GET `/api/boards`
-
-Obtiene resumen de tableros disponibles por dificultad.
-
-### 📅 GET `/api/daily?difficulty=MEDIUM`
-
-Obtiene el puzzle del día (un puzzle único por día y dificultad).
-
-**Parámetros:**
-
-- `difficulty` (opcional): EASY | MEDIUM | HARD | EXPERT | MASTER
-
-### 🎮 GET `/api/game?iterations=70&difficulty=MEDIUM`
-
-Genera o recupera un puzzle de Sudoku (usa caché de BD si existe).
-
-**Parámetros:**
-
-- `iterations` (opcional): 10-200 (default: 70)
-- `difficulty` (opcional): EASY | MEDIUM | HARD | EXPERT | MASTER
-
-### 📈 GET `/api/stats`
-
-Obtiene estadísticas de puzzles disponibles.
-
-### ✅ POST `/api/validate`
-
-Valida un tablero de Sudoku.
-
-**Body:**
+### POST `/api/validate`
 
 ```json
-{
-  "grid": [[1,2,3,4,5,6,7,8,9], ...]
-}
+{ "grid": [[1,2,3,4,5,6,7,8,9], ...] }
 ```
 
-### 🧩 POST `/api/solve`
-
-Resuelve un tablero parcialmente completado.
-
-**Body:**
+### POST `/api/solve`
 
 ```json
-{
-  "grid": [[1,2,0,4,5,6,7,8,9], ...]  // 0 = celda vacía
-}
+{ "grid": [[1,2,0,4,5,6,7,8,9], ...] }
 ```
 
-> **Nota**: Para ver ejemplos de respuesta y probar los endpoints, visita `/api/docs`
+Celdas vacías representadas con `0`.
 
-## 🧪 Testing
+## Niveles de Dificultad
 
-```bash
-# Ejecutar todos los tests
-poetry run python -m unittest tests/test_api.py
+| Input API | Nombre en BD | Coeficiente   |
+| --------- | ------------ | ------------- |
+| EASY      | VERY_EASY    | < 3.5         |
+| MEDIUM    | EASY         | 3.5 - 5.5     |
+| HARD      | HARD         | 5.5 - 7.0     |
+| EXPERT    | VERY_HARD    | 7.0 - 8.5     |
+| MASTER    | MASTER       | >= 8.5        |
 
-# O con pytest (si lo instalas)
-poetry add --group dev pytest
-poetry run pytest tests/
-```
-
-## 🚀 Despliegue
-
-### Railway (Recomendado)
-
-1. Conecta tu repositorio a [Railway](https://railway.app)
-2. Railway detectará automáticamente el proyecto Python
-3. Se desplegará automáticamente
-
-### Variables de entorno
-
-```bash
-PORT=8000                         # Puerto del servidor
-FLASK_ENV=production              # Ambiente (development/production)
-DATABASE_URL=postgresql://...     # URL de PostgreSQL (Railway lo configura automáticamente)
-```
-
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 sudoku-api/
-├── app.py                  # Aplicación Flask principal con Swagger
-├── requirements.txt        # Dependencias para producción
-├── pyproject.toml         # Configuración Poetry
-├── migrations/            # Migraciones de base de datos
-│   └── add_date_assigned.sql
+├── app.py                          # Entry point, factory Flask + Swagger
+├── pyproject.toml                  # Dependencias (Poetry)
+├── railway.json                    # Config de despliegue Railway
+├── migrations/
+│   ├── 001_initial.sql             # Schema inicial (puzzles)
+│   └── add_date_assigned.sql       # Columna para puzzle diario
 ├── sudoku_api/
 │   ├── __init__.py
-│   ├── database.py        # Conexión PostgreSQL y queries
-│   ├── sudoku_board.py    # Lógica del tablero
-│   ├── sudoku_game.py     # Generación de juegos
-│   ├── sudoku_solver.py   # Algoritmo de resolución
-│   └── validator.py       # Validación de tableros
+│   ├── config.py                   # Configuración Flask
+│   ├── enums.py                    # DifficultyLevel enum
+│   ├── api_models.py               # Modelos Swagger
+│   ├── routes.py                   # Registro de rutas
+│   ├── database.py                 # Interfaz PostgreSQL
+│   ├── sudoku_board.py             # Generación de tablero completo
+│   ├── sudoku_solver.py            # Solver con heurística MRV
+│   ├── sudoku_game.py              # Generador de puzzles jugables
+│   ├── improved_difficulty.py      # Cálculo de coeficiente de dificultad
+│   ├── validator.py                # Validación de tableros
+│   └── resources/
+│       ├── __init__.py
+│       ├── health.py
+│       ├── game.py
+│       ├── daily.py
+│       ├── validate.py
+│       ├── solve.py
+│       └── stats.py
 └── tests/
-    ├── test_api.py        # Tests de la API REST
-    └── test_validator.py  # Tests del validador
+    ├── test_api.py
+    └── test_validator.py
 ```
 
-## 📚 Niveles de Dificultad
-
-| Nivel  | Descripción                          |
-| ------ | ------------------------------------ |
-| EASY   | Fácil, suitable para principiantes   |
-| MEDIUM | Intermedio, requiere algo de lógica  |
-| HARD   | Difícil, requiere técnicas avanzadas |
-| EXPERT | Muy difícil, para expertos           |
-| MASTER | Maestro, extremadamente desafiante   |
-
-## 🔄 Comandos útiles
+## Testing
 
 ```bash
-# Desarrollo
-poetry run python app.py
-
-# Testing
-poetry run python -m unittest tests/test_api.py
-
-# Generar requirements.txt
-Instalar los siguientes paquetes en el ambiente: 
-pip install poetry-plugin-export python-inspector
-
-poetry export --without-hashes --format=requirements.txt > requirements.txt
-
-# Formatear código
-poetry run black .
-
-# Levantar ambiente 
-python3 -m venv path/to/venv
-source path/to/venv/bin/activate
-python3 -m pip install xyz
+poetry run pytest tests/
 ```
+
+## Variables de Entorno
+
+```bash
+DATABASE_URL=postgresql://...    # Conexión PostgreSQL (requerida)
+PORT=8000                        # Puerto del servidor
+FLASK_ENV=production             # development | production
+```
+
+## Despliegue
+
+Configurado para Railway con Gunicorn + Gevent. Push a `main` despliega automáticamente.

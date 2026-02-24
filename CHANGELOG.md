@@ -1,0 +1,41 @@
+# Changelog
+
+---
+
+## [Unreleased]
+
+### Fixed
+- `DifficultyLevel.name` ya no sobreescribe el comportamiento natural de Python. Se agregó `db_name` para encapsular el mapeo al esquema de BD. La respuesta de `/api/game` ahora refleja el mismo nivel que el cliente envió (`MEDIUM` → `MEDIUM`, no `EASY`).
+
+---
+
+## [2.0.0] - 2025
+
+### Changed
+- Migración completa de GraphQL (Strawberry) a REST API con Flask-RESTX.
+- Documentación automática vía Swagger UI en `/api/docs`.
+- Estructura del proyecto reorganizada en módulos (`resources/`, `sudoku_api/`).
+- Sistema de dificultad mejorado: `improved_coefficient` reemplaza al coeficiente legacy.
+- Inicialización lazy de la BD para evitar timeout en health check.
+
+### Added
+- Endpoints REST: `/api/game`, `/api/daily`, `/api/validate`, `/api/solve`, `/api/stats`, `/api/health`.
+- Sistema de puzzle diario con columna `date_assigned` en BD.
+- Enum `DifficultyLevel` con mapeo a niveles de BD.
+- Solver optimizado con heurística MRV y poda temprana.
+- Soporte de workers gevent para concurrencia en producción.
+
+### Removed
+- API GraphQL y dependencia de Strawberry.
+- `requirements.txt` — reemplazado por `pyproject.toml` con Poetry.
+
+---
+
+## [1.0.0] - 2024
+
+### Added
+- Proyecto inicial con API GraphQL (Strawberry).
+- Generador de puzzles Sudoku con verificación de solución única.
+- Validador de grids con comprobación de filas, columnas y subcuadrículas.
+- Integración con PostgreSQL vía psycopg2.
+- Configuración de despliegue en Railway.

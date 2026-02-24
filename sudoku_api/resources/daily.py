@@ -1,7 +1,10 @@
+import logging
 from datetime import date
 from flask_restx import Resource
 from sudoku_api.resources import get_db
 from sudoku_api.enums import DifficultyLevel
+
+logger = logging.getLogger(__name__)
 
 
 class DailyPuzzleResource(Resource):
@@ -42,8 +45,9 @@ class DailyPuzzleResource(Resource):
                 },
             }, 200
 
-        except Exception as e:
-            return {"error": "Failed to get daily puzzle", "message": str(e)}, 500
+        except Exception:
+            logger.exception("Failed to get daily puzzle")
+            return {"error": "Failed to get daily puzzle"}, 500
 
     @staticmethod
     def _get_empty_cells(grid):

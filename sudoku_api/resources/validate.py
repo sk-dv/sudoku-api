@@ -1,6 +1,9 @@
+import logging
 from flask_restx import Resource
 from flask import request
 from sudoku_api.validator import Validator, validate_grid_format
+
+logger = logging.getLogger(__name__)
 
 
 class ValidateResource(Resource):
@@ -34,5 +37,6 @@ class ValidateResource(Resource):
                 },
             }, 200
 
-        except Exception as e:
-            return {"error": "Validation failed", "message": str(e)}, 500
+        except Exception:
+            logger.exception("Validation failed")
+            return {"error": "Validation failed"}, 500

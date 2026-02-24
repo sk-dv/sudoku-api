@@ -10,6 +10,7 @@
 - Werkzeug actualizado a `^3.1.6` para parchear dos vulnerabilidades en `safe_join` (GHSA-hgf8-39gv-g3f2 y su bypass): nombres de dispositivo Windows (`CON`, `AUX`, etc.) con extensiones compuestas o espacios al final podían colgar la lectura indefinidamente en `send_from_directory`.
 
 ### Added
+- Logging configurado con `logging.basicConfig` en `app.py` (nivel INFO, formato con timestamp). Cada resource loguea errores con `logger.exception` incluyendo traceback completo. Los responses 500 ya no exponen `str(e)` al cliente.
 - `/api/daily` implementado: retorna el puzzle asignado a la fecha actual filtrando por `date_assigned`. Devuelve 404 si no hay puzzle asignado para hoy. La respuesta incluye `is_daily: true` y `date_assigned` en metadata.
 - `DifficultyLevel.from_db_name` para convertir valores de BD al nombre de API consistente.
 - `PuzzleDB.find_daily_puzzle(date)` para consultar puzzles por fecha.

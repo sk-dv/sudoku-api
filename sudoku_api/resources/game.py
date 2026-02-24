@@ -1,7 +1,10 @@
+import logging
 from flask_restx import Resource
 from flask import request
 from sudoku_api.resources import get_db
 from sudoku_api.enums import DifficultyLevel
+
+logger = logging.getLogger(__name__)
 
 
 class GameResource(Resource):
@@ -49,8 +52,9 @@ class GameResource(Resource):
                 },
             }, 200
 
-        except Exception as e:
-            return {"error": "Failed to generate game", "message": str(e)}, 500
+        except Exception:
+            logger.exception("Failed to generate game")
+            return {"error": "Failed to generate game"}, 500
 
     @staticmethod
     def _get_empty_cells(grid):

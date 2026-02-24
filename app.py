@@ -5,10 +5,16 @@ Aplicación Flask para generar, validar y resolver puzzles de Sudoku
 con diferentes niveles de dificultad.
 """
 
+import logging
 from flask import Flask
 from flask_cors import CORS
 from flask_restx import Api
 import os
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 
 from sudoku_api.config import Config
 from sudoku_api.api_models import create_models

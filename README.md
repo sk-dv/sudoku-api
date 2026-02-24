@@ -107,7 +107,22 @@ poetry run pytest tests/
 DATABASE_URL=postgresql://...    # Conexión PostgreSQL (requerida)
 PORT=8000                        # Puerto del servidor
 FLASK_ENV=production             # development | production
+CORS_ORIGINS=https://tu-app.com  # Orígenes permitidos (opcional, default: *)
 ```
+
+### CORS
+
+Por defecto la API acepta requests desde cualquier origen (`*`). En producción define `CORS_ORIGINS` con la URL de tu app cliente:
+
+```bash
+# Un origen
+CORS_ORIGINS=https://sudoku-app.com
+
+# Múltiples orígenes (separados por coma, sin espacios)
+CORS_ORIGINS=https://sudoku-app.com,https://staging.sudoku-app.com
+```
+
+El navegador bloquea automáticamente cualquier request fuera de los orígenes listados. Tu app cliente no requiere ningún cambio — la restricción opera enteramente en el servidor.
 
 ## Despliegue
 

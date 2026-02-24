@@ -1,4 +1,5 @@
 import os
+import random
 import psycopg2.pool
 from psycopg2.extras import RealDictCursor
 from contextlib import contextmanager
@@ -26,17 +27,20 @@ class PuzzleDB:
             self._pool.putconn(conn)
 
     def find_puzzle(self, difficulty):
-        """Buscar puzzle similar en BD"""
+        """Buscar puzzle aleatorio por dificultad sin full table scan"""
         with self.get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    """
-                    SELECT * FROM puzzles
-                    WHERE difficulty = %s
-                    ORDER BY RANDOM()
-                    LIMIT 1
-                """,
+                    "SELECT COUNT(*) as count FROM puzzles WHERE difficulty = %s",
                     (difficulty,),
+                )
+                count = cur.fetchone()["count"]
+                if count == 0:
+                    return None
+                offset = random.randint(0, count - 1)
+                cur.execute(
+                    "SELECT * FROM puzzles WHERE difficulty = %s LIMIT 1 OFFSET %s",
+                    (difficulty, offset),
                 )
                 return cur.fetchone()
 

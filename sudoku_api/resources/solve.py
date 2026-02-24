@@ -31,7 +31,7 @@ class SolveResource(Resource):
                 "data": {
                     "original_grid": data["grid"],
                     "solved_grid": solution.grid,
-                    "difficulty_coefficient": round(solver.difficult_coefficient, 2),
+                    "difficulty_coefficient": round(solver.improved_coefficient, 2),
                 },
             }, 200
 

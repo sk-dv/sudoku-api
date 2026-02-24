@@ -5,9 +5,7 @@ from sudoku_api.improved_difficulty import FastDifficultyCalculator
 class OptimizedSudokuSolver:
     def __init__(self, sudoku_board):
         self.sudoku_board = sudoku_board
-        self._num_empty_cells = len(sudoku_board.get_empty_cells())
-        self.difficult_coefficient = 0
-        self.improved_coefficient = 0  # ← Agregar esta línea
+        self.improved_coefficient = 0
         self._solution_count = 0
         self._max_solutions = 2  # Solo necesitamos saber si hay más de una
 
@@ -21,10 +19,6 @@ class OptimizedSudokuSolver:
         elif len(solutions) == 0:
             raise Exception("Sudoku has no solution")
 
-        # Coeficiente legacy (mantener compatibilidad)
-        self.difficult_coefficient /= max(self._num_empty_cells, 1)
-        
-        # Nuevo coeficiente mejorado (rápido)
         difficulty_calc = FastDifficultyCalculator(self.sudoku_board)
         self.improved_coefficient = difficulty_calc.calculate_improved_coefficient()
         
@@ -61,9 +55,6 @@ class OptimizedSudokuSolver:
 
         # Tomar la celda con menos opciones
         _, row_num, column_num, available_numbers = cells_with_options[0]
-
-        # Actualizar coeficiente de dificultad
-        self.difficult_coefficient += len(available_numbers)
 
         # Probar cada número disponible
         for number in available_numbers:

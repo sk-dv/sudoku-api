@@ -36,3 +36,17 @@ class Validator:
     @property
     def is_valid(self):
         return self._check_rows() and self._check_columns() and self._check_sub_grids()
+
+
+def validate_grid_format(grid):
+    """Valida que el grid sea una matriz 9x9 con valores enteros 0-9.
+    Retorna un mensaje de error si es inválido, None si es válido."""
+    if not isinstance(grid, list) or len(grid) != 9:
+        return "Invalid grid format"
+    for i, row in enumerate(grid):
+        if not isinstance(row, list) or len(row) != 9:
+            return f"Row {i} must have 9 elements"
+        for j, cell in enumerate(row):
+            if not isinstance(cell, int) or not 0 <= cell <= 9:
+                return f"Invalid cell at [{i}][{j}]"
+    return None

@@ -14,6 +14,7 @@
 - `PuzzleDB.find_daily_puzzle(date)` para consultar puzzles por fecha.
 
 ### Fixed
+- `validate_grid_format` extraída a `validator.py` y reutilizada en `/api/validate` y `/api/solve`: grids malformados retornan 400 descriptivo en ambos endpoints.
 - `ORDER BY RANDOM()` reemplazado por `COUNT` + `OFFSET` aleatorio: evita el full table scan y usa el índice existente en `difficulty`.
 - Coeficiente legacy eliminado de `OptimizedSudokuSolver`: se removieron `difficult_coefficient`, `_num_empty_cells` y su acumulación en `solve_traversal`. `/api/solve` ahora retorna `improved_coefficient`.
 - Bare `except` en `sudoku_game.py` reemplazado por `except Exception` para no suprimir `KeyboardInterrupt` y `SystemExit`.

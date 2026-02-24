@@ -2,6 +2,7 @@ from flask_restx import Resource
 from flask import request
 from sudoku_api.sudoku_board import SudokuBoard
 from sudoku_api.sudoku_solver import OptimizedSudokuSolver
+from sudoku_api.validator import validate_grid_format
 
 
 class SolveResource(Resource):
@@ -12,7 +13,12 @@ class SolveResource(Resource):
             if not data or "grid" not in data:
                 return {"error": "grid field is required"}, 400
 
-            board = SudokuBoard(data["grid"])
+            grid = data["grid"]
+            error = validate_grid_format(grid)
+            if error:
+                return {"error": error}, 400
+
+            board = SudokuBoard(grid)
 
             if board.is_valid and len(board.get_empty_cells()) == 0:
                 return {
@@ -29,7 +35,7 @@ class SolveResource(Resource):
             return {
                 "success": True,
                 "data": {
-                    "original_grid": data["grid"],
+                    "original_grid": grid,
                     "solved_grid": solution.grid,
                     "difficulty_coefficient": round(solver.improved_coefficient, 2),
                 },

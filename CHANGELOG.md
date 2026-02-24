@@ -14,6 +14,9 @@
 - `PuzzleDB.find_daily_puzzle(date)` para consultar puzzles por fecha.
 
 ### Fixed
+- Bare `except` en `sudoku_game.py` reemplazado por `except Exception` para no suprimir `KeyboardInterrupt` y `SystemExit`.
+- `DATABASE_URL` ausente ahora lanza `EnvironmentError` con mensaje claro en lugar de un error críptico de psycopg2.
+- Conexión a BD reemplazada por `ThreadedConnectionPool` (min=1, max=10): una sola instancia de pool por proceso, las conexiones se reutilizan entre requests.
 - `DifficultyLevel.name` ya no sobreescribe el comportamiento natural de Python. Se agregó `db_name` para encapsular el mapeo al esquema de BD. La respuesta de `/api/game` ahora refleja el mismo nivel que el cliente envió (`MEDIUM` → `MEDIUM`, no `EASY`).
 
 ---

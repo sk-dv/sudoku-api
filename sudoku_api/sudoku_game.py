@@ -61,7 +61,7 @@ class OptimizedSudokuGameGenerator:
                 solver.solve()
                 playable = new_playable
                 successful_removals += 1
-            except:
+            except Exception:
                 continue
 
             # Reportar progreso periódicamente
@@ -80,7 +80,7 @@ class OptimizedSudokuGameGenerator:
         try:
             final_solver.solve()
             difficult_coefficient = final_solver.improved_coefficient
-        except:
+        except Exception:
             difficult_coefficient = 5.0
 
         difficult_level = DifficultyLevel.from_coefficient(difficult_coefficient)

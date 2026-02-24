@@ -1,15 +1,29 @@
 import os
-import json
-import psycopg2
+import psycopg2.pool
 from psycopg2.extras import RealDictCursor
+from contextlib import contextmanager
 
 
 class PuzzleDB:
     def __init__(self):
-        self.database_url = os.environ.get("DATABASE_URL")
+        database_url = os.environ.get("DATABASE_URL")
+        if not database_url:
+            raise EnvironmentError("DATABASE_URL no está configurada")
+        self._pool = psycopg2.pool.ThreadedConnectionPool(
+            1, 10, database_url, cursor_factory=RealDictCursor
+        )
 
+    @contextmanager
     def get_connection(self):
-        return psycopg2.connect(self.database_url, cursor_factory=RealDictCursor)
+        conn = self._pool.getconn()
+        try:
+            yield conn
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self._pool.putconn(conn)
 
     def find_puzzle(self, difficulty):
         """Buscar puzzle similar en BD"""
@@ -17,16 +31,15 @@ class PuzzleDB:
             with conn.cursor() as cur:
                 cur.execute(
                     """
-                    SELECT * FROM puzzles 
+                    SELECT * FROM puzzles
                     WHERE difficulty = %s
-                    ORDER BY RANDOM() 
+                    ORDER BY RANDOM()
                     LIMIT 1
                 """,
                     (difficulty,),
                 )
-
                 return cur.fetchone()
-            
+
     def find_daily_puzzle(self, date):
         """Buscar puzzle asignado a una fecha específica"""
         with self.get_connection() as conn:

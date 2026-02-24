@@ -23,6 +23,22 @@ class DifficultyLevel(enum.Enum):
                 return "MASTER"
 
     @classmethod
+    def from_db_name(cls, db_name: str) -> 'DifficultyLevel':
+        match db_name:
+            case "VERY_EASY":
+                return cls.EASY
+            case "EASY":
+                return cls.MEDIUM
+            case "HARD":
+                return cls.HARD
+            case "VERY_HARD":
+                return cls.EXPERT
+            case "MASTER":
+                return cls.MASTER
+            case _:
+                raise ValueError(f"Nombre de BD inválido: '{db_name}'")
+
+    @classmethod
     def from_string(cls, value: str) -> 'DifficultyLevel':
         if not value:
             raise ValueError("El nivel de dificultad no puede estar vacío")

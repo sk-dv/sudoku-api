@@ -27,6 +27,16 @@ class PuzzleDB:
 
                 return cur.fetchone()
             
+    def find_daily_puzzle(self, date):
+        """Buscar puzzle asignado a una fecha específica"""
+        with self.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT * FROM puzzles WHERE date_assigned = %s LIMIT 1",
+                    (date,),
+                )
+                return cur.fetchone()
+
     def get_boards(self):
         """Obtiene todos los tableros de Sudoku y un mapa de cuántos hay por dificultad"""
         with self.get_connection() as conn:

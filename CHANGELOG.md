@@ -2,8 +2,20 @@
 
 ---
 
-## [3.0.0] - 2026-03-08
+## [3.1.0] - 2026-03-08
 
+### Added
+- `sudoku_api/monitoring.py`: inicialización de Sentry con `LoggingIntegration` — captura `logger.exception()` como errores, ignora niveles menores a WARNING.
+- `sudoku_api/middleware.py`: security headers (`X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`) vía `after_request`.
+- `sudoku_api/auth.py`: decorator `require_api_key` — protege endpoints con header `X-API-Key`. Sin-op si `API_KEY` no está definida.
+
+### Changed
+- `app.py` refactorizado como factory delgado: delega Sentry, hooks y rutas a sus módulos.
+- `/api/solve` y `/api/validate` requieren `X-API-Key` cuando `API_KEY` está definida en entorno.
+
+---
+
+## [3.0.0] - 2026-03-08
 
 ### Changed
 - `DifficultyLevel` expandido de 5 a 7 niveles: BEGINNER, EASY, MEDIUM, HARD, EXPERT, MASTER, GRANDMASTER con distribución uniforme de coeficiente (intervalos de ~1.3).
@@ -23,7 +35,7 @@
 - `docs/levels.md` (implementado en su totalidad).
 
 ### Security
-- CORS restringido vía variable de entorno `CORS_ORIGINS` (CSV). Sin la variable, cae en `*` para desarrollo. En producción: `CORS_ORIGINS=https://tu-dominio.com`.
+- CORS restringido vía variable de entorno `CORS_ORIGINS` (CSV). Sin la variable, cae en `*` para desarrollo.
 - Flask actualizado a `^3.1.0` para parchear GHSA-4grg-w6v8-c28g.
 - Werkzeug actualizado a `^3.1.6` para parchear GHSA-hgf8-39gv-g3f2 y su bypass.
 

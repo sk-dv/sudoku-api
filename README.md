@@ -77,6 +77,10 @@ sudoku-api/
 │   ├── enums.py                    # DifficultyLevel enum
 │   ├── api_models.py               # Modelos Swagger
 │   ├── routes.py                   # Registro de rutas
+│   ├── extensions.py               # Rate limiter
+│   ├── monitoring.py               # Sentry
+│   ├── middleware.py               # Security headers
+│   ├── auth.py                     # API key para /solve y /validate
 │   ├── database.py                 # Interfaz PostgreSQL
 │   ├── sudoku_board.py             # Generación de tablero completo
 │   ├── sudoku_solver.py            # Solver con heurística MRV
@@ -109,6 +113,8 @@ DATABASE_URL=postgresql://...    # Conexión PostgreSQL (requerida)
 PORT=8000                        # Puerto del servidor
 FLASK_ENV=production             # development | production
 CORS_ORIGINS=https://tu-app.com  # Orígenes permitidos (opcional, default: *)
+API_KEY=...                      # Protege /solve y /validate (opcional)
+SENTRY_DSN=...                   # Monitoreo de errores (opcional)
 ```
 
 ### CORS

@@ -11,8 +11,8 @@ class FastDifficultyCalculator:
         if self.total_empty == 0:
             return 1.0
 
-        # Factor 1: Celdas vacías (más vacías = más difícil)
-        empty_factor = min(10, (self.total_empty / 81) * 15)  # 0-10 scale
+        # Factor 1: Celdas vacías — escala lineal de 25 vacías (1.0) a 64 vacías (10.0)
+        empty_factor = max(1.0, min(10.0, (self.total_empty - 25) / 39 * 9 + 1))
 
         # Factor 2: Distribución de opciones
         options_factor = self._calculate_options_complexity()
@@ -20,8 +20,8 @@ class FastDifficultyCalculator:
         # Factor 3: Distribución espacial
         spatial_factor = self._calculate_spatial_complexity()
 
-        # Combinación simple y directa
-        final_score = empty_factor * 0.5 + options_factor * 0.3 + spatial_factor * 0.2
+        # Combinación con mayor peso a celdas vacías para dispersar rangos
+        final_score = empty_factor * 0.6 + options_factor * 0.25 + spatial_factor * 0.15
 
         # Asegurar rango 1-10
         return max(1.0, min(10.0, final_score))

@@ -44,13 +44,21 @@ class PuzzleDB:
                 )
                 return cur.fetchone()
 
-    def find_daily_puzzle(self, date):
-        """Buscar puzzle asignado a una fecha específica"""
+    def find_daily_puzzle(self, difficulty: str, day_of_year: int):
+        """Selecciona el puzzle del día de forma determinística por fecha y dificultad"""
         with self.get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    "SELECT * FROM puzzles WHERE date_assigned = %s LIMIT 1",
-                    (date,),
+                    "SELECT COUNT(*) as count FROM puzzles WHERE difficulty = %s",
+                    (difficulty,),
+                )
+                count = cur.fetchone()["count"]
+                if count == 0:
+                    return None
+                offset = day_of_year % count
+                cur.execute(
+                    "SELECT * FROM puzzles WHERE difficulty = %s ORDER BY id LIMIT 1 OFFSET %s",
+                    (difficulty, offset),
                 )
                 return cur.fetchone()
 

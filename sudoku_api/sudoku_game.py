@@ -19,43 +19,77 @@ class SudokuGame:
 
 
 class OptimizedSudokuGameGenerator:
-    @staticmethod
-    def generate_puzzle(iterations: int = 70, progress_callback=None) -> SudokuGame:
-        """Genera puzzle optimizado con callback opcional de progreso"""
-        
-        # Progreso inicial
-        if progress_callback:
-            progress_callback(0, "Iniciando generación...")
+    _ITERATION_RANGES = {
+        DifficultyLevel.BEGINNER:    (15, 30),
+        DifficultyLevel.EASY:        (30, 45),
+        DifficultyLevel.MEDIUM:      (45, 60),
+        DifficultyLevel.HARD:        (60, 80),
+        DifficultyLevel.EXPERT:      (80, 110),
+        DifficultyLevel.MASTER:      (110, 150),
+        DifficultyLevel.GRANDMASTER: (150, 200),
+    }
 
-        # Generar tablero completo
-        solution = SudokuBoard()
-        solution.build()
-        
+    @staticmethod
+    def generate_puzzle(
+        target_level: DifficultyLevel = None,
+        iterations: int = None,
+        progress_callback=None,
+    ) -> SudokuGame:
+        """Genera puzzle optimizado con callback opcional de progreso.
+
+        Si se pasa target_level, el número de iteraciones se deriva del rango
+        correspondiente y se reintenta hasta 3 veces si el coeficiente resultante
+        no cae dentro del rango esperado.
+        """
+        if target_level is None:
+            target_level = DifficultyLevel.get_default()
+
+        max_attempts = 3
+        for attempt in range(max_attempts):
+            if progress_callback:
+                progress_callback(0, f"Iniciando generación (intento {attempt + 1})...")
+
+            if iterations is not None:
+                iter_count = iterations
+            else:
+                min_iter, max_iter = OptimizedSudokuGameGenerator._ITERATION_RANGES[target_level]
+                iter_count = random.randint(min_iter, max_iter)
+
+            game = OptimizedSudokuGameGenerator._generate_once(iter_count, progress_callback)
+
+            if game.difficult_level == target_level:
+                return game
+
+            # Si es el último intento, devolver lo que tenemos
+            if attempt == max_attempts - 1:
+                return game
+
+        return game  # fallback (nunca alcanzado)
+
+    @staticmethod
+    def _generate_once(iterations: int, progress_callback=None) -> SudokuGame:
         if progress_callback:
             progress_callback(10, "Tablero base creado")
 
-        # Eliminar celdas
+        solution = SudokuBoard()
+        solution.build()
+
         playable = solution.clone()
         successful_removals = 0
         max_empty_cells = min(iterations, 64)
-
-        # Calcular intervalo de reporte (cada 10% aprox)
         report_interval = max(5, iterations // 10)
 
         for i in range(iterations):
             if successful_removals >= max_empty_cells:
                 break
 
-            # Seleccionar celda aleatoria (tu lógica actual)
             row, col = random.randrange(9), random.randrange(9)
             if playable.is_cell_empty(row, col):
                 continue
 
-            # Intentar eliminar (tu lógica actual)
             new_playable = playable.clone()
             new_playable.clear_cell(row, col)
 
-            # Verificar solución única (tu lógica actual)
             solver = OptimizedSudokuSolver(new_playable)
             try:
                 solver.solve()
@@ -64,18 +98,16 @@ class OptimizedSudokuGameGenerator:
             except Exception:
                 continue
 
-            # Reportar progreso periódicamente
             if progress_callback and (i % report_interval == 0 or i == iterations - 1):
-                progress = int(10 + (i / iterations) * 80)  # 10% a 90%
+                progress = int(10 + (i / iterations) * 80)
                 progress_callback(
-                    progress, 
-                    f"Eliminando celdas: {successful_removals} exitosas de {i+1} intentadas"
+                    progress,
+                    f"Eliminando celdas: {successful_removals} exitosas de {i+1} intentadas",
                 )
 
-        # Calcular dificultad final
         if progress_callback:
             progress_callback(95, "Calculando dificultad final...")
-            
+
         final_solver = OptimizedSudokuSolver(playable)
         try:
             final_solver.solve()

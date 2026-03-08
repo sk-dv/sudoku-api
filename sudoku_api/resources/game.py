@@ -24,7 +24,7 @@ class GameResource(Resource):
             difficulty_input = request.args.get("difficulty", None, type=str)
 
             difficulty_level = GameResource._get_difficulty_level(difficulty_input)
-            cached_puzzle = db.find_puzzle(difficulty_level.db_name)
+            cached_puzzle = db.find_puzzle(difficulty_level.name)
 
             empty_cells = self._get_empty_cells(cached_puzzle["playable_grid"])
             hints = [[r, c] for r, c in empty_cells]

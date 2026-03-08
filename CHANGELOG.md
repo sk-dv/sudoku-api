@@ -4,25 +4,37 @@
 
 ## [Unreleased]
 
-### Security
-- CORS restringido vía variable de entorno `CORS_ORIGINS` (CSV). Sin la variable, cae en `*` para desarrollo. En producción: `CORS_ORIGINS=https://tu-dominio.com`.
-- Flask actualizado a `^3.1.0` para parchear GHSA-4grg-w6v8-c28g: el header `Vary: Cookie` no se establecía al acceder al session con el operador `in`, lo que podía llevar a que proxies cachearan respuestas con datos de sesión de usuarios autenticados.
-- Werkzeug actualizado a `^3.1.6` para parchear dos vulnerabilidades en `safe_join` (GHSA-hgf8-39gv-g3f2 y su bypass): nombres de dispositivo Windows (`CON`, `AUX`, etc.) con extensiones compuestas o espacios al final podían colgar la lectura indefinidamente en `send_from_directory`.
+### Next steps
+- Deploy del código al entorno de producción
+
+### Changed
+- `DifficultyLevel` expandido de 5 a 7 niveles: BEGINNER, EASY, MEDIUM, HARD, EXPERT, MASTER, GRANDMASTER con distribución uniforme de coeficiente (intervalos de ~1.3).
+- `from_db_name` y `db_name` eliminados: el nombre del enum es ahora idéntico al valor en BD, sin mapeo intermedio.
+- `from_string` simplificado usando `cls[normalized]` — acepta cualquier nivel por nombre.
+- `from_coefficient` actualizado con los nuevos umbrales (2.3 / 3.6 / 4.9 / 6.2 / 7.5 / 8.8).
+- `improved_difficulty.py`: `empty_factor` ahora escala linealmente de 25 celdas vacías (1.0) a 64 (10.0). Pesos ajustados a `0.6 / 0.25 / 0.15` para mayor dispersión entre niveles.
+- `OptimizedSudokuGameGenerator.generate_puzzle` acepta `target_level`: mapea el nivel a un rango de iteraciones y reintenta hasta 3 veces si el coeficiente resultante no coincide.
+- `/api/daily` ahora selecciona el puzzle de forma determinística por `day_of_year % total`: mismo puzzle para todos los usuarios en el mismo día, sin asignación manual. Acepta `?difficulty=` para elegir nivel.
 
 ### Added
-- Logging configurado con `logging.basicConfig` en `app.py` (nivel INFO, formato con timestamp). Cada resource loguea errores con `logger.exception` incluyendo traceback completo. Los responses 500 ya no exponen `str(e)` al cliente.
-- `/api/daily` implementado: retorna el puzzle asignado a la fecha actual filtrando por `date_assigned`. Devuelve 404 si no hay puzzle asignado para hoy. La respuesta incluye `is_daily: true` y `date_assigned` en metadata.
-- `DifficultyLevel.from_db_name` para convertir valores de BD al nombre de API consistente.
-- `PuzzleDB.find_daily_puzzle(date)` para consultar puzzles por fecha.
+- `docs/monetization.md`: arquitectura de tiers y estrategia de monetización.
+
+### Removed
+- Columna `hints_coordinates` de la tabla `puzzles` (siempre era NULL; las coordenadas se calculan en runtime).
+- Columna `date_assigned` e índice `idx_date_assigned` de la tabla `puzzles` (reemplazado por selección determinística).
+- `docs/levels.md` (implementado en su totalidad).
+
+### Security
+- CORS restringido vía variable de entorno `CORS_ORIGINS` (CSV). Sin la variable, cae en `*` para desarrollo. En producción: `CORS_ORIGINS=https://tu-dominio.com`.
+- Flask actualizado a `^3.1.0` para parchear GHSA-4grg-w6v8-c28g.
+- Werkzeug actualizado a `^3.1.6` para parchear GHSA-hgf8-39gv-g3f2 y su bypass.
 
 ### Fixed
-- `validate_grid_format` extraída a `validator.py` y reutilizada en `/api/validate` y `/api/solve`: grids malformados retornan 400 descriptivo en ambos endpoints.
-- `ORDER BY RANDOM()` reemplazado por `COUNT` + `OFFSET` aleatorio: evita el full table scan y usa el índice existente en `difficulty`.
-- Coeficiente legacy eliminado de `OptimizedSudokuSolver`: se removieron `difficult_coefficient`, `_num_empty_cells` y su acumulación en `solve_traversal`. `/api/solve` ahora retorna `improved_coefficient`.
-- Bare `except` en `sudoku_game.py` reemplazado por `except Exception` para no suprimir `KeyboardInterrupt` y `SystemExit`.
-- `DATABASE_URL` ausente ahora lanza `EnvironmentError` con mensaje claro en lugar de un error críptico de psycopg2.
-- Conexión a BD reemplazada por `ThreadedConnectionPool` (min=1, max=10): una sola instancia de pool por proceso, las conexiones se reutilizan entre requests.
-- `DifficultyLevel.name` ya no sobreescribe el comportamiento natural de Python. Se agregó `db_name` para encapsular el mapeo al esquema de BD. La respuesta de `/api/game` ahora refleja el mismo nivel que el cliente envió (`MEDIUM` → `MEDIUM`, no `EASY`).
+- `validate_grid_format` extraída a `validator.py` y reutilizada en `/api/validate` y `/api/solve`.
+- `ORDER BY RANDOM()` reemplazado por `COUNT` + `OFFSET` aleatorio.
+- Coeficiente legacy eliminado de `OptimizedSudokuSolver`.
+- `DATABASE_URL` ausente ahora lanza `EnvironmentError` con mensaje claro.
+- Conexión a BD reemplazada por `ThreadedConnectionPool` (min=1, max=10).
 
 ---
 

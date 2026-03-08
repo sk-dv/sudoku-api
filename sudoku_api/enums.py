@@ -2,75 +2,40 @@ import enum
 
 
 class DifficultyLevel(enum.Enum):
-    EASY = 1
-    MEDIUM = 2
-    HARD = 3
-    EXPERT = 4
-    MASTER = 5
-
-    @property
-    def db_name(self) -> str:
-        match self:
-            case DifficultyLevel.EASY:
-                return "VERY_EASY"
-            case DifficultyLevel.MEDIUM:
-                return "EASY"
-            case DifficultyLevel.HARD:
-                return "HARD"
-            case DifficultyLevel.EXPERT:
-                return "VERY_HARD"
-            case DifficultyLevel.MASTER:
-                return "MASTER"
-
-    @classmethod
-    def from_db_name(cls, db_name: str) -> 'DifficultyLevel':
-        match db_name:
-            case "VERY_EASY":
-                return cls.EASY
-            case "EASY":
-                return cls.MEDIUM
-            case "HARD":
-                return cls.HARD
-            case "VERY_HARD":
-                return cls.EXPERT
-            case "MASTER":
-                return cls.MASTER
-            case _:
-                raise ValueError(f"Nombre de BD inválido: '{db_name}'")
+    BEGINNER = 1
+    EASY = 2
+    MEDIUM = 3
+    HARD = 4
+    EXPERT = 5
+    MASTER = 6
+    GRANDMASTER = 7
 
     @classmethod
     def from_string(cls, value: str) -> 'DifficultyLevel':
         if not value:
             raise ValueError("El nivel de dificultad no puede estar vacío")
 
-        normalized = value.strip()
+        normalized = value.strip().upper()
 
-        match normalized:
-            case "EASY":
-                return cls.EASY
-            case "MEDIUM":
-                return cls.MEDIUM
-            case "HARD":
-                return cls.HARD
-            case "EXPERT":
-                return cls.EXPERT
-            case "MASTER":
-                return cls.MASTER
-            case _:
-                raise ValueError(f"Nivel inválido: '{value}'")
+        try:
+            return cls[normalized]
+        except KeyError:
+            raise ValueError(f"Nivel inválido: '{value}'")
 
     @classmethod
     def from_coefficient(cls, coefficient: float) -> 'DifficultyLevel':
-        if coefficient < 3.5:
-            return cls.EASY
-        elif coefficient < 5.5:
-            return cls.MEDIUM
-        elif coefficient < 7.0:
-            return cls.HARD
-        elif coefficient < 8.5:
-            return cls.EXPERT
-        else:
-            return cls.MASTER
+        thresholds = [
+            (2.3, cls.BEGINNER),
+            (3.6, cls.EASY),
+            (4.9, cls.MEDIUM),
+            (6.2, cls.HARD),
+            (7.5, cls.EXPERT),
+            (8.8, cls.MASTER),
+        ]
+        for threshold, level in thresholds:
+            if coefficient < threshold:
+                return level
+        return cls.GRANDMASTER
 
     @classmethod
     def get_default(cls) -> 'DifficultyLevel':

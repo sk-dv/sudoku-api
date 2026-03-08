@@ -1,6 +1,7 @@
 import logging
 from flask_restx import Resource
 from flask import request
+from sudoku_api.extensions import limiter
 from sudoku_api.resources import get_db
 from sudoku_api.enums import DifficultyLevel
 
@@ -18,6 +19,7 @@ class GameResource(Resource):
         except (ValueError, AttributeError):
             return DifficultyLevel.EASY
 
+    @limiter.limit("5/minute")
     def get(self):
         try:
             db = get_db()

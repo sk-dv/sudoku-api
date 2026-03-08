@@ -1,6 +1,8 @@
 import logging
 from flask_restx import Resource
 from flask import request
+from sudoku_api.extensions import limiter
+from sudoku_api.auth import require_api_key
 from sudoku_api.sudoku_board import SudokuBoard
 from sudoku_api.sudoku_solver import OptimizedSudokuSolver
 from sudoku_api.validator import validate_grid_format
@@ -9,6 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 class SolveResource(Resource):
+    @limiter.limit("5/minute")
+    @require_api_key
     def post(self):
         try:
             data = request.get_json()

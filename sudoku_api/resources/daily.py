@@ -2,6 +2,7 @@ import logging
 from datetime import date
 from flask_restx import Resource
 from flask import request
+from sudoku_api.extensions import limiter
 from sudoku_api.resources import get_db
 from sudoku_api.enums import DifficultyLevel
 
@@ -9,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class DailyPuzzleResource(Resource):
+    @limiter.limit("3/minute")
     def get(self):
         try:
             db = get_db()

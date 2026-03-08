@@ -2,10 +2,8 @@
 
 ---
 
-## [Unreleased]
+## [3.0.0] - 2026-03-08
 
-### Next steps
-- Deploy del código al entorno de producción
 
 ### Changed
 - `DifficultyLevel` expandido de 5 a 7 niveles: BEGINNER, EASY, MEDIUM, HARD, EXPERT, MASTER, GRANDMASTER con distribución uniforme de coeficiente (intervalos de ~1.3).

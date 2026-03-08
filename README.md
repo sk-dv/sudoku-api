@@ -34,7 +34,7 @@ El servidor inicia en `http://localhost:8000`. Swagger UI disponible en `/api/do
 
 Retorna un puzzle aleatorio de la BD según dificultad.
 
-**Parámetros:** `difficulty` (opcional): EASY | MEDIUM | HARD | EXPERT | MASTER. Default: MEDIUM.
+**Parámetros:** `difficulty` (opcional): BEGINNER | EASY | MEDIUM | HARD | EXPERT | MASTER | GRANDMASTER. Default: MEDIUM.
 
 ### POST `/api/validate`
 
@@ -52,13 +52,15 @@ Celdas vacías representadas con `0`.
 
 ## Niveles de Dificultad
 
-| Input API | Nombre en BD | Coeficiente   |
-| --------- | ------------ | ------------- |
-| EASY      | VERY_EASY    | < 3.5         |
-| MEDIUM    | EASY         | 3.5 - 5.5     |
-| HARD      | HARD         | 5.5 - 7.0     |
-| EXPERT    | VERY_HARD    | 7.0 - 8.5     |
-| MASTER    | MASTER       | >= 8.5        |
+| Nivel       | Coeficiente     |
+| ----------- | --------------- |
+| BEGINNER    | < 2.3           |
+| EASY        | 2.3 – 3.6       |
+| MEDIUM      | 3.6 – 4.9       |
+| HARD        | 4.9 – 6.2       |
+| EXPERT      | 6.2 – 7.5       |
+| MASTER      | 7.5 – 8.8       |
+| GRANDMASTER | > 8.8           |
 
 ## Estructura del Proyecto
 
@@ -68,8 +70,7 @@ sudoku-api/
 ├── pyproject.toml                  # Dependencias (Poetry)
 ├── railway.json                    # Config de despliegue Railway
 ├── migrations/
-│   ├── 001_initial.sql             # Schema inicial (puzzles)
-│   └── add_date_assigned.sql       # Columna para puzzle diario
+│   └── 001_initial.sql             # Schema inicial (puzzles)
 ├── sudoku_api/
 │   ├── __init__.py
 │   ├── config.py                   # Configuración Flask

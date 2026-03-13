@@ -4,6 +4,7 @@ from sudoku_api.resources.game import GameResource
 from sudoku_api.resources.validate import ValidateResource
 from sudoku_api.resources.solve import SolveResource
 from sudoku_api.resources.health import HealthResource
+from sudoku_api.resources.user import AuthRegisterResource, UserStatsResource, ProgressSaveResource
 
 
 def register_routes(api, models):
@@ -22,3 +23,6 @@ def register_routes(api, models):
     ns.add_resource(GameResource, "/game")
     ns.add_resource(ValidateResource, "/validate")
     ns.add_resource(SolveResource, "/solve")
+    ns.add_resource(AuthRegisterResource, "/auth/register")
+    ns.add_resource(UserStatsResource, "/user/stats")
+    ns.add_resource(ProgressSaveResource, "/progress/save")

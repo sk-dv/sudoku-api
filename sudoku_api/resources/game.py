@@ -47,6 +47,7 @@ class GameResource(Resource):
                         "coefficient": round(cached_puzzle["coefficient"], 2),
                     },
                     "metadata": {
+                        "puzzle_id": cached_puzzle["id"],
                         "empty_cells": len(empty_cells),
                         "cached": True,
                         "hints_coordinates": hints,

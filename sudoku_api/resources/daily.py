@@ -46,6 +46,7 @@ class DailyPuzzleResource(Resource):
                         "coefficient": round(puzzle["coefficient"], 2),
                     },
                     "metadata": {
+                        "puzzle_id": puzzle["id"],
                         "empty_cells": len(empty_cells),
                         "cached": True,
                         "is_daily": True,
